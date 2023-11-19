@@ -16,6 +16,8 @@ let rooms = {
     igloo: {},
 }
 
+
+
 io.on("connection", (socket) => {
     console.log(`A new user connected: ${socket.id}`);
     console.log("Current users:");
@@ -50,40 +52,60 @@ io.on("connection", (socket) => {
         console.log("Updated rooms:", rooms);
     });
 
+    function calculateAngle(x1, y1, x2, y2) {
+        return Math.atan2(y2 - y1, x2 - x1);
+    }
+
     socket.on("move", (targetPosition) => {
         const roomsArray = Array.from(socket.rooms);
         const room = roomsArray.length > 1 ? roomsArray[1] : undefined;
-    
+
         if (room && rooms[room] && rooms[room][socket.id]) {
             const user = rooms[room][socket.id];
-    
+
+            user.state = "walking";
+
             // Calculate the distance between current and target position
             const deltaX = targetPosition.x - user.x;
             const deltaY = targetPosition.y - user.y;
             const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-    
+            console.log(distance)
+            console.log(`start position: ${user.x}`)
+
             // Set the distance scale for animation duration (e.g., 200 pixels per second)
-            const distanceScale = 30;
-    
+            const distanceScale = 200;
+
             // Calculate the animation duration based on distance
             const animationDuration = distance / distanceScale;
-    
+            console.log(animationDuration)
+
             // Calculate the total steps based on duration and tick rate
             const totalSteps = Math.floor(animationDuration * 60);
-    
-            // Calculate the interval between steps based on total steps
-            const stepInterval = 1000 / 60; // Assuming 60 ticks per second
-    
+            console.log(totalSteps)
+
             // Set the target position for animation
             user.animationTarget = targetPosition;
-    
+
             // Set the total steps and step interval for animation
             user.animationTotalSteps = totalSteps;
-            user.animationStepInterval = stepInterval;
-    
+
             // Reset the current step
             user.animationCurrentStep = 0;
-            console.log(user)
+
+            // Calculate the angle between current and target position
+            const angle = calculateAngle(user.x, user.y, targetPosition.x, targetPosition.y);
+
+            // Convert the angle to one of the eight directions
+            const directions = ["left", "up-left", "up", "up-right", "right", "down-right", "down", "down-left"];
+            const index = Math.round((angle + Math.PI) / (Math.PI / 4)) % 8;
+            const direction = directions[index];
+
+            user.animationDirection = direction;
+
+            //used to calculate the total distance moved per step in the animation.
+            user.deltaX = (user.animationTarget.x - user.x) / user.animationTotalSteps;
+            user.deltaY = (user.animationTarget.y - user.y) / user.animationTotalSteps;
+
         }
     });
 
@@ -91,6 +113,7 @@ io.on("connection", (socket) => {
     socket.on("disconnect", function () {
         console.log('User disconnected');
 
+        user.state = "idle";
         // Remove the user from the specified room
         for (const room in rooms) {
             if (rooms[room][socket.id]) {
@@ -119,15 +142,29 @@ setInterval(() => {
         for (const userId in rooms[room]) {
             const user = rooms[room][userId];
 
-            // Check if the user has a pending movement
             if (user.animationTarget && user.animationCurrentStep < user.animationTotalSteps) {
                 // Increment the animation step
                 user.animationCurrentStep++;
 
-                // Update user position based on animation step
-                const progress = user.animationCurrentStep / user.animationTotalSteps;
-                user.x = user.animationTarget.x * progress + user.x * (1 - progress);
-                user.y = user.animationTarget.y * progress + user.y * (1 - progress);
+
+            // // Calculate the delta for x and y based on the total distance and total steps
+            // const deltaX = (user.animationTarget.x - user.x) / user.animationTotalSteps;
+            // const deltaY = (user.animationTarget.y - user.y) / user.animationTotalSteps;
+
+
+            // Update user position
+            user.x += user.deltaX;
+            user.y += user.deltaY;
+
+            } else {
+                // Set the state to "idle" when the user is not walking
+                user.state = "idle";
+
+                // Ensure the user reaches the exact target position when animation is complete
+                if (user.animationTarget) {
+                    user.x = user.animationTarget.x;
+                    user.y = user.animationTarget.y;
+                }
             }
         }
 

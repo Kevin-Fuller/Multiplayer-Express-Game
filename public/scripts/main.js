@@ -33,6 +33,8 @@ function render() {
         context.fillStyle = 'black';
         context.font = '10px Arial';
         context.fillText(user.username, user.x, user.y + 20);
+
+        context.fillText(user.state, user.x, user.y + 40);
     }
 }
 
