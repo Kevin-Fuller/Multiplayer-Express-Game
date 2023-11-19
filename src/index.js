@@ -38,6 +38,7 @@ io.on("connection", (socket) => {
             username,
             x: 0,
             y: 0,
+            animationIntervalId: null, // Store the animation interval ID for each user
         };
 
         // Emit the room information to the user
@@ -49,17 +50,40 @@ io.on("connection", (socket) => {
         console.log("Updated rooms:", rooms);
     });
 
-    socket.on("move", (position) => {
-        // Update the user's position in the specified room
+    socket.on("move", (targetPosition) => {
         const roomsArray = Array.from(socket.rooms);
         const room = roomsArray.length > 1 ? roomsArray[1] : undefined;
-
+    
         if (room && rooms[room] && rooms[room][socket.id]) {
-            rooms[room][socket.id].x = position.x;
-            rooms[room][socket.id].y = position.y;
-
-            // Emit the updated position only to users in the same room
-            io.to(room).emit("roomUpdate", rooms[room]);
+            const user = rooms[room][socket.id];
+    
+            // Calculate the distance between current and target position
+            const deltaX = targetPosition.x - user.x;
+            const deltaY = targetPosition.y - user.y;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    
+            // Set the distance scale for animation duration (e.g., 200 pixels per second)
+            const distanceScale = 30;
+    
+            // Calculate the animation duration based on distance
+            const animationDuration = distance / distanceScale;
+    
+            // Calculate the total steps based on duration and tick rate
+            const totalSteps = Math.floor(animationDuration * 60);
+    
+            // Calculate the interval between steps based on total steps
+            const stepInterval = 1000 / 60; // Assuming 60 ticks per second
+    
+            // Set the target position for animation
+            user.animationTarget = targetPosition;
+    
+            // Set the total steps and step interval for animation
+            user.animationTotalSteps = totalSteps;
+            user.animationStepInterval = stepInterval;
+    
+            // Reset the current step
+            user.animationCurrentStep = 0;
+            console.log(user)
         }
     });
 
@@ -70,6 +94,11 @@ io.on("connection", (socket) => {
         // Remove the user from the specified room
         for (const room in rooms) {
             if (rooms[room][socket.id]) {
+                // Clear the animation interval when a user disconnects
+                if (rooms[room][socket.id].animationIntervalId) {
+                    clearInterval(rooms[room][socket.id].animationIntervalId);
+                }
+
                 // Broadcast the removal of a user to others in the room
                 socket.to(room).emit("userRemoved", socket.id);
 
@@ -82,13 +111,32 @@ io.on("connection", (socket) => {
     });
 });
 
-function getTargetPositions(room) {
-    const targets = {};
-    for (const userId in rooms[room]) {
-        targets[userId] = rooms[room][userId].targetPosition || { x: rooms[room][userId].x, y: rooms[room][userId].y };
+// Server-side game loop with fixed time step
+const serverTickRate = 1000 / 60; // 60 ticks per second
+
+setInterval(() => {
+    for (const room in rooms) {
+        for (const userId in rooms[room]) {
+            const user = rooms[room][userId];
+
+            // Check if the user has a pending movement
+            if (user.animationTarget && user.animationCurrentStep < user.animationTotalSteps) {
+                // Increment the animation step
+                user.animationCurrentStep++;
+
+                // Update user position based on animation step
+                const progress = user.animationCurrentStep / user.animationTotalSteps;
+                user.x = user.animationTarget.x * progress + user.x * (1 - progress);
+                user.y = user.animationTarget.y * progress + user.y * (1 - progress);
+            }
+        }
+
+        // Broadcast the updated positions to users in the same room
+        io.to(room).emit("roomUpdate", rooms[room]);
+
     }
-    return targets;
-}
+
+}, serverTickRate);
 
 httpServer.listen(PORT, () => {
     console.log(`listening on port ${PORT}`)
