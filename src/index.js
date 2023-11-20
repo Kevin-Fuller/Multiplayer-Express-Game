@@ -87,7 +87,7 @@ const serverTickRate = 1000 / 60; // 60 ticks per second
 
 
 const animations = {
-    walking: [0, 1, 2, 1, 0, 3, 4, 3], // Example: frames 0 to 4 for walking animation
+    walking: [0, -1, -2, -1, 0, -3, -4, -3], // Example: frames 0 to 4 for walking animation
     idle: [5, 6, 7], // Example: frames 5 to 7 for idle animation
 };
 

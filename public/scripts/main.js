@@ -45,20 +45,38 @@ function render() {
 
         if (user.state === 'walking') {
             // Get the current frame from the walking animation
-            const frameNumber = user.currentFrame;
+            const frameNumber = user.currentFrame >= 0 ? user.currentFrame : -user.currentFrame;
 
             // Calculate the position of the frame on the sprite sheet
-            const spriteX = frameNumber * frameWidth; // Adjust based on your sprite sheet
+            const spriteX = Math.abs(frameNumber) * frameWidth; // Adjust based on your sprite sheet
             const spriteY = 0; // Assuming all frames are in the first row
 
             // Save the current transformation matrix
             context.save();
 
             // Flip the image horizontally if delayBetweenFrames is negative
-            if (user.delayBetweenFrames < 0) {
-                context.translate(user.x + frameWidth, user.y);
+            if (user.currentFrame < 0) {
+                const spriteWidth = 64;
+                const numberOfSprites = spriteSheet.width / spriteWidth;
+
+                // Translate and scale to flip the image horizontally
+                context.translate(user.x + 32, user.y); // Adjusted translation
+
                 context.scale(-1, 1);
-                context.drawImage(spriteSheet, spriteX, spriteY, frameWidth, frameHeight, 0, 0, 32, 32);
+
+                // Draw the sprite with the inverted sprite sheet
+                context.drawImage(
+                    spriteSheet,
+                    spriteX,
+                    spriteY,
+                    spriteWidth,
+                    frameHeight,
+                    0, // Adjusted x-coordinate
+                    0,
+                    32,
+                    32
+                );
+
             } else {
                 // Draw the sprite without flipping
                 context.drawImage(spriteSheet, spriteX, spriteY, frameWidth, frameHeight, user.x, user.y, 32, 32);
@@ -76,13 +94,10 @@ function render() {
         context.fillStyle = 'black';
         context.font = '10px Arial';
         context.fillText(user.username, user.x, user.y + 20);
-
         context.fillText(user.state, user.x, user.y + 40);
-
         context.fillText(user.currentFrame, user.x, user.y + 60);
     }
 }
-
 
 
 // Event: Handle mouse click on the canvas
