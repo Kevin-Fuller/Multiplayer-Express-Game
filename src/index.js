@@ -19,6 +19,26 @@ let rooms = {
     igloo: {},
 }
 
+const clothesOptions = {
+    head: {
+        head1: { name: "Hard Hat", spriteSheet: "images/player/hats/hardhat.png" },
+        head2: { name: "Crown", spriteSheet: "images/player/hats/crown.png" },
+        // Add more head options as needed
+    },
+    body: {
+        body1: { name: "T-Shirt", spriteSheet: "images/player/body/tshirt.png" },
+        body2: { name: "Suit", spriteSheet: "images/player/body/suit.png" },
+        // Add more body options as needed
+    },
+    feet: {
+        feet1: { name: "Sneakers", spriteSheet: "images/player/shoes/sneakers.png" },
+        feet2: { name: "Boots", spriteSheet: "images/player/shoes/boots.png" },
+        // Add more feet options as needed
+    },
+    // Add more categories if necessary
+};
+
+
 io.on("connection", (socket) => {
     console.log(`A new user connected: ${socket.id}`);
     console.log("Current users:");
@@ -43,6 +63,11 @@ io.on("connection", (socket) => {
             const randomIndex = Math.floor(Math.random() * colors.length);
             return colors[randomIndex];
         }
+        function getRandomHat() {
+            const hat = [clothesOptions.head.head1,clothesOptions.head.head2, null];
+            const randomIndex = Math.floor(Math.random() * hat.length);
+            return hat[randomIndex];
+        }
 
         rooms[room][socket.id] = {
             username,
@@ -50,6 +75,11 @@ io.on("connection", (socket) => {
             currentFrame: 0,
             finalFrame: 0,
             state: "idle",
+            clothes: {
+                head: getRandomHat(),
+                body: clothesOptions.body.body1,
+                feet: null,
+            },
             x: 350,
             y: 350,
             animationIntervalId: null, // Store the animation interval ID for each user

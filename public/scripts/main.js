@@ -43,7 +43,23 @@ let animationFrameCounter = 0;
 
 const characterSize = 58;
 
-
+function drawClothes(){
+    if(user.clothes.head) {
+        const graphic = new Image();
+        graphic.src=user.clothes.head.spriteSheet;
+        context.drawImage(
+            graphic,
+            spriteX,
+            spriteY,
+            spriteWidth,
+            frameHeight,
+            0, // Adjusted x-coordinate
+            0,
+            characterSize,
+            characterSize
+        );
+    }
+}
 
 
 function render() {
@@ -70,6 +86,8 @@ function render() {
                 color = penguinColor;
         }
 
+        
+
         if (user.state) {
 
            
@@ -86,6 +104,7 @@ function render() {
                 context.translate(characterPositionX + characterSize, characterPositionY); // Adjusted translation
 
                 context.scale(-1, 1);
+
 
                 // Draw the sprite with the inverted sprite sheet
                 context.drawImage(
@@ -110,11 +129,62 @@ function render() {
                     characterSize,
                     characterSize
                 );
+                if(user.clothes.head) {
+                    const graphic = new Image();
+                    graphic.src=user.clothes.head.spriteSheet;
+                    context.drawImage(
+                        graphic,
+                        spriteX,
+                        spriteY,
+                        spriteWidth,
+                        frameHeight,
+                        0, // Adjusted x-coordinate
+                        0,
+                        characterSize,
+                        characterSize
+                    );
+                }
+                if(user.clothes.body) {
+                    const graphic = new Image();
+                    graphic.src=user.clothes.body.spriteSheet;
+                    context.drawImage(
+                        graphic,
+                        spriteX,
+                        spriteY,
+                        spriteWidth,
+                        frameHeight,
+                        0, // Adjusted x-coordinate
+                        0,
+                        characterSize,
+                        characterSize
+                    );
+                }
+                
 
             } else {
                 // Draw the sprite without flipping
                 context.drawImage(color, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
                 context.drawImage(penguinNoColor, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
+                if(user.clothes.head) {
+                    const graphic = new Image();
+                    graphic.src=user.clothes.head.spriteSheet;
+                    context.drawImage(
+                        graphic,
+                        spriteX,
+                        spriteY,
+                        frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize
+                    );
+                }
+                if(user.clothes.body) {
+                    const graphic = new Image();
+                    graphic.src=user.clothes.body.spriteSheet;
+                    context.drawImage(
+                        graphic,
+                        spriteX,
+                        spriteY,
+                        frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize
+                    );
+                }
             }
 
             // Restore the transformation matrix
