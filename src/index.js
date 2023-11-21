@@ -37,8 +37,19 @@ io.on("connection", (socket) => {
         socket.join(room);
 
         // Add the user to the specified room
+
+        function getRandomColor() {
+            const colors = ["red", "blue", "black"];
+            const randomIndex = Math.floor(Math.random() * colors.length);
+            return colors[randomIndex];
+        }
+
         rooms[room][socket.id] = {
             username,
+            color: getRandomColor(),
+            currentFrame: 0,
+            finalFrame: 0,
+            state: "idle",
             x: 350,
             y: 350,
             animationIntervalId: null, // Store the animation interval ID for each user
@@ -127,8 +138,8 @@ setInterval(() => {
                 }
             } else {
                 // Set the state to "idle" when the user is not walking
+                user.currentFrame = user.finalFrame
                 user.state = "idle";
-                user.currentFrame = user.finalFrame;
 
                 // Ensure the user reaches the exact target position when the animation is complete
                 if (user.animationTarget) {

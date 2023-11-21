@@ -18,6 +18,14 @@ connectButton.addEventListener("click", () => {
 const canvas = document.getElementById('game');
 const context = canvas.getContext('2d');
 const spriteSheet = new Image();
+const penguinNoColor = new Image();
+const penguinColor = new Image();
+const penguinColorRed = new Image();
+const penguinColorBlack = new Image();
+penguinNoColor.src = 'images/penguinNoColor.png'; // Replace with the actual path
+penguinColor.src = 'images/penguinColor.png'; // Replace with the actual path
+penguinColorRed.src = 'images/penguinColorRed.png'; // Replace with the actual path
+penguinColorBlack.src = 'images/penguinColorBlack.png'; // Replace with the actual path
 spriteSheet.src = 'images/spritesheet.png'; // Replace with the actual path
 
 let currentRoom;
@@ -47,16 +55,25 @@ function render() {
         const user = currentRoom[userId];
         const characterPositionX = user.x - (characterSize/2)
         const characterPositionY = user.y - (characterSize - 10);
+        let color;
+        const frameNumber = user.currentFrame >= 0 ? user.currentFrame : -user.currentFrame;
+        const spriteX = Math.abs(frameNumber) * frameWidth; // Adjust based on your sprite sheet
+        const spriteY = 0; // Assuming all frames are in the first row
+        switch(user.color) {
+            case "red": 
+                color = penguinColorRed;
+                break;
+            case "black":
+                color = penguinColorBlack;
+                break;
+            default:
+                color = penguinColor;
+        }
 
         if (user.state) {
-            // Get the current frame from the walking animation
-            const frameNumber = user.currentFrame >= 0 ? user.currentFrame : -user.currentFrame;
 
            
 
-            // Calculate the position of the frame on the sprite sheet
-            const spriteX = Math.abs(frameNumber) * frameWidth; // Adjust based on your sprite sheet
-            const spriteY = 0; // Assuming all frames are in the first row
 
             // Save the current transformation matrix
             context.save();
@@ -64,7 +81,6 @@ function render() {
             // Flip the image horizontally if delayBetweenFrames is negative
             if (user.currentFrame < 0) {
                 const spriteWidth = 64;
-                const numberOfSprites = spriteSheet.width / spriteWidth;
 
                 // Translate and scale to flip the image horizontally
                 context.translate(characterPositionX + characterSize, characterPositionY); // Adjusted translation
@@ -73,7 +89,18 @@ function render() {
 
                 // Draw the sprite with the inverted sprite sheet
                 context.drawImage(
-                    spriteSheet,
+                    color,
+                    spriteX,
+                    spriteY,
+                    spriteWidth,
+                    frameHeight,
+                    0, // Adjusted x-coordinate
+                    0,
+                    characterSize,
+                    characterSize
+                );
+                context.drawImage(
+                    penguinNoColor,
                     spriteX,
                     spriteY,
                     spriteWidth,
@@ -86,15 +113,16 @@ function render() {
 
             } else {
                 // Draw the sprite without flipping
-                context.drawImage(spriteSheet, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
+                context.drawImage(color, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
+                context.drawImage(penguinNoColor, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
             }
 
             // Restore the transformation matrix
             context.restore();
         } else {
             // Draw a default square for users in other states
-            context.fillStyle = 'blue';
-            context.fillRect(characterPositionX, characterPositionY, characterSize, characterSize);
+            context.drawImage(color, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
+                context.drawImage(penguinNoColor, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
         }
 
         // Draw the username below the sprite
