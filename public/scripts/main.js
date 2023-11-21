@@ -110,7 +110,7 @@ function render() {
 
 
 // Event: Handle mouse click on the canvas
-canvas.addEventListener('click', (event) => {
+canvas.addEventListener('contextmenu', (event) => {
     const rect = canvas.getBoundingClientRect();
     const targetPosition = {
         x: event.clientX - rect.left,
@@ -119,6 +119,8 @@ canvas.addEventListener('click', (event) => {
 
     // Send the target position to the server
     socket.emit('move', targetPosition);
+
+    event.preventDefault();
 });
 
 socket.on("roomUpdate", (roomData) => {
