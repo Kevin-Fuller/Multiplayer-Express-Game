@@ -33,6 +33,9 @@ let lastRenderTime = 0;
 let animationFrameCounter = 0;
 
 
+const characterSize = 58;
+
+
 
 
 function render() {
@@ -42,10 +45,14 @@ function render() {
     // Draw a sprite for each user based on their current position and state
     for (const userId in currentRoom) {
         const user = currentRoom[userId];
+        const characterPositionX = user.x - (characterSize/2)
+        const characterPositionY = user.y - (characterSize - 10);
 
-        if (user.state === 'walking') {
+        if (user.state) {
             // Get the current frame from the walking animation
             const frameNumber = user.currentFrame >= 0 ? user.currentFrame : -user.currentFrame;
+
+           
 
             // Calculate the position of the frame on the sprite sheet
             const spriteX = Math.abs(frameNumber) * frameWidth; // Adjust based on your sprite sheet
@@ -60,7 +67,7 @@ function render() {
                 const numberOfSprites = spriteSheet.width / spriteWidth;
 
                 // Translate and scale to flip the image horizontally
-                context.translate(user.x + 32, user.y); // Adjusted translation
+                context.translate(characterPositionX + characterSize, characterPositionY); // Adjusted translation
 
                 context.scale(-1, 1);
 
@@ -73,13 +80,13 @@ function render() {
                     frameHeight,
                     0, // Adjusted x-coordinate
                     0,
-                    32,
-                    32
+                    characterSize,
+                    characterSize
                 );
 
             } else {
                 // Draw the sprite without flipping
-                context.drawImage(spriteSheet, spriteX, spriteY, frameWidth, frameHeight, user.x, user.y, 32, 32);
+                context.drawImage(spriteSheet, spriteX, spriteY, frameWidth, frameHeight, characterPositionX, characterPositionY, characterSize, characterSize);
             }
 
             // Restore the transformation matrix
@@ -87,15 +94,17 @@ function render() {
         } else {
             // Draw a default square for users in other states
             context.fillStyle = 'blue';
-            context.fillRect(user.x, user.y, 32, 32);
+            context.fillRect(characterPositionX, characterPositionY, characterSize, characterSize);
         }
 
         // Draw the username below the sprite
+        const centerTextX = (characterPositionX + (characterSize/2))
         context.fillStyle = 'black';
+        context.textAlign = "center";
         context.font = '10px Arial';
-        context.fillText(user.username, user.x, user.y + 20);
-        context.fillText(user.state, user.x, user.y + 40);
-        context.fillText(user.currentFrame, user.x, user.y + 60);
+        context.fillText(user.username, centerTextX, characterPositionY + 60);
+        context.fillText(user.state, centerTextX, characterPositionY + 80);
+        context.fillText(user.currentFrame, centerTextX, characterPositionY + 100);
     }
 }
 

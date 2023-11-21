@@ -44,9 +44,10 @@ function handleMove(socket, targetPosition, rooms, io) {
         const angle = calculateAngle(user.x, user.y, targetPosition.x, targetPosition.y);
 
         // Convert the angle to one of the eight directions
-        const directions = ["left", "up-left", "up", "up-right", "right", "down-right", "down", "down-left"];
+        const directions = ["left", "upleft", "up", "upright", "right", "downright", "down", "downleft"];
         const index = Math.round((angle + Math.PI) / (Math.PI / 4)) % 8;
         const direction = directions[index];
+        user.state = `walking${direction}`
 
         user.animationDirection = direction;
 

@@ -39,8 +39,8 @@ io.on("connection", (socket) => {
         // Add the user to the specified room
         rooms[room][socket.id] = {
             username,
-            x: 0,
-            y: 0,
+            x: 350,
+            y: 350,
             animationIntervalId: null, // Store the animation interval ID for each user
         };
 
@@ -87,9 +87,18 @@ const serverTickRate = 1000 / 60; // 60 ticks per second
 
 
 const animations = {
-    walking: [0, -1, -2, -1, 0, -3, -4, -3], // Example: frames 0 to 4 for walking animation
-    idle: [5, 6, 7], // Example: frames 5 to 7 for idle animation
+    walkingleft: [2, 10, 3, 10, 2, 9, 1, 9], // Example: frames 0 to 4 for walking animation
+    walkingupleft: [3, 11, 11, 11, 3, 10, 10], // Example: frames 0 to 4 for walking animation
+    walkingup: [4, 11, 3, 11, 4, -11, -3], // Example: frames 0 to 4 for walking animation
+    walkingupright: [-3, -11, -11, -11, -3, -10, -10], // Example: frames 0 to 4 for walking animation
+    walkingright: [-2, -10, -3, -10, -2, -9, -1, -9], // Example: frames 0 to 4 for walking animation
+    walkingdownright: [-1, -9, -10, -9, -1, -8, -15, -8], // Example: frames 0 to 4 for walking animation
+    walkingdown: [0, 8, 15, 8, 0, 14, -15, 14], // Example: frames 0 to 4 for walking animation
+    walkingdownleft: [1, 9, 10, 9, 1, 8, 15, 8], // Example: frames 0 to 4 for walking animation
+    idle: [0], // Example: frames 5 to 7 for idle animation
 };
+
+const framerate = 4;
 
 setInterval(() => {
     for (const room in rooms) {
@@ -98,6 +107,7 @@ setInterval(() => {
             if (user.animationTarget && user.animationCurrentStep < user.animationTotalSteps) {
                 // Increment the animation step
                 user.animationCurrentStep++;
+                user.finalFrame = animations[user.state][0];
 
                 // Update user position
                 user.x += user.deltaX;
@@ -108,9 +118,9 @@ setInterval(() => {
                 if(user.delayBetweenFrames == 0){
                     const currentFrame = animationFrames[(user.animationCurrentStep) % animationFrames.length];
                     user.currentFrame = currentFrame;
-                    user.delayBetweenFrames = 10
+                    user.delayBetweenFrames = framerate;
                 } else if (isNaN(user.delayBetweenFrames)) { // Corrected the comparison
-                    user.delayBetweenFrames = 10;
+                    user.delayBetweenFrames = framerate;
                     
                 } else {
                     user.delayBetweenFrames = user.delayBetweenFrames - 1;
@@ -118,6 +128,7 @@ setInterval(() => {
             } else {
                 // Set the state to "idle" when the user is not walking
                 user.state = "idle";
+                user.currentFrame = user.finalFrame;
 
                 // Ensure the user reaches the exact target position when the animation is complete
                 if (user.animationTarget) {
