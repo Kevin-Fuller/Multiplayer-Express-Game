@@ -8,8 +8,8 @@ function handleMove(socket, targetPosition, rooms, io) {
     const roomsArray = Array.from(socket.rooms);
     const room = roomsArray.length > 1 ? roomsArray[1] : undefined;
 
-    if (room && rooms[room] && rooms[room][socket.id]) {
-        const user = rooms[room][socket.id];
+    if (room && rooms[room].users && rooms[room].users[socket.id]) {
+        const user = rooms[room].users[socket.id]; // Corrected the reference to the users object
 
         user.state = "walking";
 
@@ -47,13 +47,16 @@ function handleMove(socket, targetPosition, rooms, io) {
         const directions = ["left", "upleft", "up", "upright", "right", "downright", "down", "downleft"];
         const index = Math.round((angle + Math.PI) / (Math.PI / 4)) % 8;
         const direction = directions[index];
-        user.state = `walking${direction}`
+        user.state = `walking${direction}`;
 
         user.animationDirection = direction;
 
         // Used to calculate the total distance moved per step in the animation.
         user.deltaX = (user.animationTarget.x - user.x) / user.animationTotalSteps;
         user.deltaY = (user.animationTarget.y - user.y) / user.animationTotalSteps;
+
+        // Broadcast the updated user data to users in the same room
+        io.to(room).emit("roomUpdate", rooms[room]);
     }
 }
 

@@ -12,11 +12,66 @@ const io = new Server(httpServer, { /* options */ });
 
 app.use(express.static('public'));
 
+
+const furnitureOptions = {
+    christmasTree: {
+        name: "christmas tree",
+        spritesheet: "images/furniture/christmastree.png",
+        width: 62.5,
+        height: 100,
+        animation: false,
+        floor: false
+    }
+}
+
 // rooms will store a list of users and their positions.
 let rooms = {
-    iceburg: {},
-    plaza: {},
-    igloo: {},
+    iceburg: {
+        src: "https://2.bp.blogspot.com/-Px0gsWsoTM4/TvXL2qxOOAI/AAAAAAAABoI/KtE9U51XRhw/s1600/tree+1.bmp",
+        startingX: 300,
+        startingY: 250,
+        furniture: [
+            {
+                type: "christmasTree",
+                x: 300, // Adjust the x-coordinate based on your preference
+                y: 200, // Adjust the y-coordinate based on your preference
+                frame: 2,
+                furnitureOptions: furnitureOptions["christmasTree"],
+            },
+            {
+                type: "christmasTree",
+                x: 250, // Adjust the x-coordinate based on your preference
+                y: 220, // Adjust the y-coordinate based on your preference
+                frame: 1,
+                furnitureOptions: furnitureOptions["christmasTree"],
+            },
+            {
+                type: "christmasTree",
+                x: 330, // Adjust the x-coordinate based on your preference
+                y: 250, // Adjust the y-coordinate based on your preference
+                frame: 3,
+                furnitureOptions: furnitureOptions["christmasTree"],
+            },
+            {
+                type: "christmasTree",
+                x: 500, // Adjust the x-coordinate based on your preference
+                y: 220, // Adjust the y-coordinate based on your preference
+                frame: 0,
+                furnitureOptions: furnitureOptions["christmasTree"],
+            },
+            {
+                type: "christmasTree",
+                x: 400, // Adjust the x-coordinate based on your preference
+                y: 210, // Adjust the y-coordinate based on your preference
+                frame: 0,
+                furnitureOptions: furnitureOptions["christmasTree"],
+            },
+            // Add more furniture as needed
+        ],
+        users: {}
+    },
+    plaza: {src: "https://pbs.twimg.com/media/E9mVH28XsAIyG6F?format=jpg&name=4096x4096", startingX: 350, startingY: 400, users: {}} ,
+    igloo: {users: {}},
 }
 
 const clothesOptions = {
@@ -37,6 +92,10 @@ const clothesOptions = {
     },
     // Add more categories if necessary
 };
+
+
+
+
 
 
 io.on("connection", (socket) => {
@@ -69,7 +128,7 @@ io.on("connection", (socket) => {
             return hat[randomIndex];
         }
 
-        rooms[room][socket.id] = {
+        rooms[room].users[socket.id] = {
             username,
             color: getRandomColor(),
             currentFrame: 0,
@@ -89,7 +148,7 @@ io.on("connection", (socket) => {
         io.to(socket.id).emit("roomUpdate", rooms[room]);
 
         // Broadcast the addition of a new user to others in the room
-        socket.to(room).emit("userAdded", socket.id, rooms[room][socket.id]);
+        socket.to(room).emit("userAdded", socket.id, rooms[room].users[socket.id]);
 
         console.log("Updated rooms:", rooms);
     });
@@ -97,14 +156,73 @@ io.on("connection", (socket) => {
     // Use the handleMove function from the walking logic file
     socket.on("move", (targetPosition) => walkingLogic.handleMove(socket, targetPosition, rooms, io));
 
+    socket.on("changeRoom", (targetRoom) => {
+        // Get the user ID from the socket
+        const userId = socket.id;
+    
+        // Check if the target room exists
+        if (!rooms[targetRoom]) {
+            console.log(`Invalid target room: ${targetRoom}`);
+            return;
+        }
+    
+        // Check if the user exists in the current room
+        const currentRoom = Object.keys(rooms).find(room => rooms[room].users[userId]);
+        if (!currentRoom) {
+            console.log(`User not found in any room`);
+            return;
+        }
+    
+        // Remove the user from the current room
+        const user = rooms[currentRoom].users[userId];
+        delete rooms[currentRoom].users[userId];
+    
+        // Leave the user from the current room
+        socket.leave(currentRoom);
+    
+        // Join the user to the target room
+        socket.join(targetRoom);
+
+        // Set the user's position to the starting position of the new room
+        user.x = rooms[targetRoom].startingX;
+        user.y = rooms[targetRoom].startingY;
+        user.animationTarget = {x: rooms[targetRoom].startingX, y: rooms[targetRoom].startingY}
+        console.log(user)
+        rooms[targetRoom].users[userId] = user;
+            // Clear the user's animation interval and reset animation-related properties
+    clearInterval(user.animationIntervalId);
+    user.animationIntervalId = null;
+    user.animationTarget = null;
+    user.animationCurrentStep = 0;
+    user.delayBetweenFrames = 0;
+    
+        // Broadcast the removal of the user from the current room and the addition to the target room
+        socket.to(currentRoom).emit("userRemoved", userId);
+        socket.to(targetRoom).emit("userAdded", userId, user);
+    
+        // Delay before emitting the updated room information to the user
+        setTimeout(() => {
+            // Emit the updated room information to the user
+            io.to(socket.id).emit("roomUpdate", rooms[targetRoom]);
+    
+            // Broadcast the updated positions to users in the same room
+            io.to(currentRoom).emit("roomUpdate", rooms[currentRoom]);
+            io.to(targetRoom).emit("roomUpdate", rooms[targetRoom]);
+    
+            console.log(`User ${userId} changed room from ${currentRoom} to ${targetRoom}`);
+        }, 500); // You can adjust the delay as needed
+    });
+    
+    
+
     // Event: Disconnect
 socket.on("disconnect", function () {
     console.log('User disconnected');
 
     // Remove the user from the specified room
     for (const room in rooms) {
-        if (rooms[room][socket.id]) {
-            const user = rooms[room][socket.id];
+        if (rooms[room].users[socket.id]) {
+            const user = rooms[room].users[socket.id];
 
             // Clear the animation interval when a user disconnects
             if (user.animationIntervalId) {
@@ -114,9 +232,7 @@ socket.on("disconnect", function () {
             // Broadcast the removal of a user to others in the room
             socket.to(room).emit("userRemoved", socket.id);
 
-            delete rooms[room][socket.id];
-
-            // Emit the updated room information after a user disconnects
+            delete rooms[room].users[socket.id];
             io.to(room).emit("roomUpdate", rooms[room]);
         }
     }
@@ -143,8 +259,8 @@ const framerate = 4;
 
 setInterval(() => {
     for (const room in rooms) {
-        for (const userId in rooms[room]) {
-            const user = rooms[room][userId];
+        for (const userId in rooms[room].users) {
+            const user = rooms[room].users[userId];
             if (user.animationTarget && user.animationCurrentStep < user.animationTotalSteps) {
                 // Increment the animation step
                 user.animationCurrentStep++;
