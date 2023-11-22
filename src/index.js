@@ -156,6 +156,28 @@ io.on("connection", (socket) => {
     // Use the handleMove function from the walking logic file
     socket.on("move", (targetPosition) => walkingLogic.handleMove(socket, targetPosition, rooms, io));
 
+    socket.on("sendMessage", (message) => {
+        // Get the user ID from the socket
+        const userId = socket.id;
+
+        // Check if the user exists in any room
+        for (const room in rooms) {
+            if (rooms[room].users[userId]) {
+                const user = rooms[room].users[userId];
+
+                // Update the user's message
+                user.message = message;
+                user.messageTimeout = 100;
+
+                // Broadcast the updated user information to others in the room
+                socket.to(room).emit("userUpdated", userId, user);
+
+                console.log(`User ${userId} sent a message: ${message}`);
+                break; // Exit the loop once the user is found
+            }
+        }
+    });
+
     socket.on("changeRoom", (targetRoom) => {
         // Get the user ID from the socket
         const userId = socket.id;
@@ -294,6 +316,10 @@ setInterval(() => {
                 }
 
 
+            }
+            user.messageTimeout = user.messageTimeout - 1;
+            if(user.messageTimeout <= 0) {
+                user.message = ""
             }
         }
 

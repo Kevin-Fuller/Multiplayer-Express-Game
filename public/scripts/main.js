@@ -309,6 +309,8 @@ function render() {
                 );
             }
 
+
+
             // Draw the username below the sprite
             const centerTextX = characterPositionX + characterSize / 2;
             context.fillStyle = 'black';
@@ -317,6 +319,23 @@ function render() {
             context.fillText(user.username, centerTextX, characterPositionY + 60);
             context.fillText(user.state, centerTextX, characterPositionY + 80);
             context.fillText(user.currentFrame, centerTextX, characterPositionY + 100);
+
+            // Draw messages above characters
+            if (user.message) {
+                // Draw speech bubble
+                const bubbleWidth = context.measureText(user.message).width + 10;
+                const bubbleHeight = 20;
+                const bubbleX = characterPositionX + characterSize / 2 - bubbleWidth / 2;
+                const bubbleY = characterPositionY - bubbleHeight - 5;
+
+                // Draw speech bubble background
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.fillRect(bubbleX, bubbleY, bubbleWidth, bubbleHeight);
+
+                // Draw message text
+                context.fillStyle = 'black';
+                context.fillText(user.message, characterPositionX + characterSize / 2, bubbleY + bubbleHeight / 2);
+            }
         }
     }
 }
@@ -403,4 +422,24 @@ socket.on("userRemoved", (userId) => {
     render();
 });
 
+const sendMessageInput = document.getElementById("sendMessage");
 
+// Event: Handle key press in the input
+sendMessageInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        // Get the message from the input
+        const message = sendMessageInput.value.trim();
+
+        // Check if the message is not empty
+        if (message) {
+            // Emit the message to the server
+            socket.emit('sendMessage', message);
+
+            // Clear the input
+            sendMessageInput.value = '';
+        }
+
+        // Prevent the default behavior (line break in the input)
+        event.preventDefault();
+    }
+});
