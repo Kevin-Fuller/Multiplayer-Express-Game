@@ -6,6 +6,7 @@ let defaultRoom = "iceburg";
 
 
 
+
 connectButton.addEventListener("click", () => {
     const username = usernameInput.value;
     const room = defaultRoom;
@@ -14,6 +15,7 @@ connectButton.addEventListener("click", () => {
         socket.emit("setUsername", { username, room });
     }
 });
+
 
 const canvas = document.getElementById('game');
 const context = canvas.getContext('2d');
@@ -65,6 +67,7 @@ function drawClothes() {
 let furnitureInRoom = {};
 let furnitureImages = {};
 
+
 // Function to preload furniture spritesheets
 function preloadFurnitureImages() {
     for (const furnitureId in furnitureInRoom) {
@@ -83,11 +86,28 @@ function preloadFurnitureImages() {
 const propAdjustment = 10
 
 
+import { addMapListeners, renderMap, drawMapButton } from './map/map.js';
+
+
+// ... (other variable declarations and imports)
+let isMapOpen = false;
+// Call this function to add event listeners for the map button
+addMapListeners(canvas, () => {
+    // Toggle the map state
+    isMapOpen = !isMapOpen;
+    // Handle map button click (e.g., open map, change room, etc.)
+    console.log('Map button clicked!');
+    console.log(isMapOpen)
+
+    // Redraw the canvas
+    render();
+});
+
+
 
 function render() {
     // Clear the canvas before drawing the updated positions
     context.clearRect(0, 0, canvas.width, canvas.height);
-
     // Preload furniture spritesheets
     preloadFurnitureImages();
 
@@ -131,7 +151,6 @@ function render() {
     for (const renderObject of renderObjects) {
         if (renderObject.type === "furniture") {
             const furniture = renderObject.object;
-            console.log(furniture)
             const img = furnitureImages[furniture.furnitureOptions.spritesheet];
             const frameWidth = furniture.furnitureOptions.width;
             const frameHeight = furniture.furnitureOptions.height;
@@ -337,6 +356,13 @@ function render() {
                 context.fillText(user.message, characterPositionX + characterSize / 2, bubbleY + bubbleHeight / 2);
             }
         }
+    }
+    if (isMapOpen) {
+        // Draw the map
+        renderMap(context, canvas);
+    } else {
+        // Draw the map button
+        drawMapButton(context);
     }
 }
 
