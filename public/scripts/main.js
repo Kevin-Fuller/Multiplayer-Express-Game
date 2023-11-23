@@ -7,6 +7,7 @@ let defaultRoom = "iceburg";
 
 
 
+
 connectButton.addEventListener("click", () => {
     const username = usernameInput.value;
     const room = defaultRoom;
@@ -32,36 +33,75 @@ spriteSheet.src = 'images/spritesheet.png'; // Replace with the actual path
 
 let currentRoom;
 
+let baseX = 800;
+let baseY = 500;
+let resizeX = 1600
+let resizeY = 1000
+
+
+function sizeCanvas(x, y) {
+    const aspectRatio = baseX / baseY;
+    let newWidth, newHeight;
+    if (x / y > aspectRatio) {
+        newWidth = y * aspectRatio;
+        newHeight = y;
+    } else {
+        newWidth = x;
+        newHeight = x / aspectRatio;
+    }
+
+// Set the canvas size
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+
+    // Update resizeX and resizeY
+    resizeX = newWidth;
+    resizeY = newHeight;
+
+}
+
+window.addEventListener("resize", ()=>{
+    sizeCanvas((window.innerWidth * 0.8),(window.innerHeight * 0.8))
+})
+
+sizeCanvas((window.innerWidth * 0.8),(window.innerHeight * 0.8))
+
+function convertToResize(x, y) {
+    const xRatio = resizeX / baseX;
+    const yRatio = resizeY / baseY;
+
+    const resizeXPos = x * xRatio;
+    const resizeYPos = y * yRatio;
+
+    return { x: resizeXPos, y: resizeYPos };
+}
+
+function convertToResizeWidthHeight(width, height) {
+    const xRatio = resizeX / baseX;
+    const yRatio = resizeY / baseY;
+
+    const resizeWidth = width * xRatio;
+    const resizeHeight = height * yRatio;
+
+    return { width: resizeWidth, height: resizeHeight };
+}
+
+function convertToBase(x, y) {
+    const xRatio = resizeX / baseX;
+    const yRatio = resizeY / baseY;
+
+    const baseXPos = x / xRatio;
+    const baseYPos = y / yRatio;
+
+    return { x: baseXPos, y: baseYPos };
+}
 
 
 const frameWidth = 64;
 const frameHeight = 64;
 
-const visualFrameDuration = 100; // Time in milliseconds for rendering each frame visually
-const animationFrameDuration = 100; // Time in ticks to update the animation frame
-let lastRenderTime = 0;
-let animationFrameCounter = 0;
-
 
 const characterSize = 58;
-
-function drawClothes() {
-    if (user.clothes.head) {
-        const graphic = new Image();
-        graphic.src = user.clothes.head.spriteSheet;
-        context.drawImage(
-            graphic,
-            spriteX,
-            spriteY,
-            spriteWidth,
-            frameHeight,
-            0, // Adjusted x-coordinate
-            0,
-            characterSize,
-            characterSize
-        );
-    }
-}
 
 
 let furnitureInRoom = {};
@@ -155,6 +195,9 @@ function render() {
             const frameWidth = furniture.furnitureOptions.width;
             const frameHeight = furniture.furnitureOptions.height;
             const frameX = frameWidth * furniture.frame;
+
+            const convertedWidthHeight = convertToResizeWidthHeight(frameWidth, frameHeight);
+            const convertedXYResize = convertToResize( furniture.x, furniture.y)
             
             context.drawImage(
                 img,
@@ -162,16 +205,16 @@ function render() {
                 0,
                 frameWidth,
                 frameHeight,
-                furniture.x,
-                furniture.y,
-                frameWidth,
-                frameHeight
+                convertedXYResize.x,
+                convertedXYResize.y,
+                convertedWidthHeight.width,
+                convertedWidthHeight.height,
             );
         } else if (renderObject.type === "character") {
             const user = renderObject.object;
             // Draw a sprite for each user based on their current position and state
-            const characterPositionX = user.x - (characterSize / 2);
-            const characterPositionY = user.y - (characterSize - 10);
+            const characterPositionX = convertToResize(user.x, user.y).x - (convertToResizeWidthHeight(characterSize,characterSize).width / 2);
+            const characterPositionY = convertToResize(user.x, user.y).y - (convertToResizeWidthHeight(characterSize,characterSize).height - 10);
             let color;
             const frameNumber = user.currentFrame >= 0 ? user.currentFrame : -user.currentFrame;
             const spriteX = Math.abs(frameNumber) * frameWidth; // Adjust based on your sprite sheet
@@ -192,8 +235,11 @@ function render() {
                 if (user.currentFrame < 0) {
                     const spriteWidth = 64;
 
-                    context.translate(characterPositionX + characterSize, characterPositionY);
+                    context.translate(characterPositionX + convertToResizeWidthHeight(characterSize,characterSize).width, characterPositionY);
                     context.scale(-1, 1);
+
+                    const convertedWidthHeight = convertToResizeWidthHeight(spriteWidth, frameHeight);
+                    const convertedXYResize = convertToResize( spriteX, spriteY)
 
                     context.drawImage(
                         color,
@@ -203,8 +249,8 @@ function render() {
                         frameHeight,
                         0,
                         0,
-                        characterSize,
-                        characterSize
+                        convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                     );
                     context.drawImage(
                         penguinNoColor,
@@ -214,8 +260,8 @@ function render() {
                         frameHeight,
                         0,
                         0,
-                        characterSize,
-                        characterSize
+                        convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                     );
                     if (user.clothes.head) {
                         const graphic = new Image();
@@ -228,8 +274,8 @@ function render() {
                             frameHeight,
                             0,
                             0,
-                            characterSize,
-                            characterSize
+                            convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                         );
                     }
                     if (user.clothes.body) {
@@ -243,8 +289,8 @@ function render() {
                             frameHeight,
                             0,
                             0,
-                            characterSize,
-                            characterSize
+                            convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                         );
                     }
                 } else {
@@ -256,8 +302,8 @@ function render() {
                         frameHeight,
                         characterPositionX,
                         characterPositionY,
-                        characterSize,
-                        characterSize
+                        convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                     );
                     context.drawImage(
                         penguinNoColor,
@@ -267,8 +313,8 @@ function render() {
                         frameHeight,
                         characterPositionX,
                         characterPositionY,
-                        characterSize,
-                        characterSize
+                        convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                     );
                     if (user.clothes.head) {
                         const graphic = new Image();
@@ -281,8 +327,8 @@ function render() {
                             frameHeight,
                             characterPositionX,
                             characterPositionY,
-                            characterSize,
-                            characterSize
+                            convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                         );
                     }
                     if (user.clothes.body) {
@@ -296,8 +342,8 @@ function render() {
                             frameHeight,
                             characterPositionX,
                             characterPositionY,
-                            characterSize,
-                            characterSize
+                            convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                         );
                     }
                 }
@@ -312,8 +358,8 @@ function render() {
                     frameHeight,
                     characterPositionX,
                     characterPositionY,
-                    characterSize,
-                    characterSize
+                    convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                 );
                 context.drawImage(
                     penguinNoColor,
@@ -323,29 +369,29 @@ function render() {
                     frameHeight,
                     characterPositionX,
                     characterPositionY,
-                    characterSize,
-                    characterSize
+                    convertToResizeWidthHeight(characterSize,characterSize).width,
+                        convertToResizeWidthHeight(characterSize,characterSize).height
                 );
             }
 
 
 
             // Draw the username below the sprite
-            const centerTextX = characterPositionX + characterSize / 2;
+            const centerTextX = characterPositionX + convertToResizeWidthHeight(characterSize,characterSize).width / 2;
             context.fillStyle = 'black';
             context.textAlign = "center";
-            context.font = '10px Arial';
-            context.fillText(user.username, centerTextX, characterPositionY + 60);
-            context.fillText(user.state, centerTextX, characterPositionY + 80);
-            context.fillText(user.currentFrame, centerTextX, characterPositionY + 100);
+            context.font = `${convertToResizeWidthHeight(10,10).width}px Arial`;
+            context.fillText(user.username, centerTextX, characterPositionY + convertToResizeWidthHeight(10,60).height);
+            context.fillText(user.state, centerTextX, characterPositionY +  convertToResizeWidthHeight(10,80).height);
+            context.fillText(user.currentFrame, centerTextX, characterPositionY +  convertToResizeWidthHeight(10,100).height);
 
             // Draw messages above characters
             if (user.message) {
                 // Draw speech bubble
-                const bubbleWidth = context.measureText(user.message).width + 10;
-                const bubbleHeight = 20;
-                const bubbleX = characterPositionX + characterSize / 2 - bubbleWidth / 2;
-                const bubbleY = characterPositionY - bubbleHeight - 5;
+                const bubbleWidth = context.measureText(user.message).width +  convertToResizeWidthHeight(10,60).width;
+                const bubbleHeight =  convertToResizeWidthHeight(10,20).height;
+                const bubbleX = characterPositionX + convertToResizeWidthHeight(characterSize,characterSize).width / 2 - bubbleWidth / 2;
+                const bubbleY = characterPositionY - bubbleHeight -  convertToResizeWidthHeight(10,5).height;
 
                 // Draw speech bubble background
                 context.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -353,7 +399,7 @@ function render() {
 
                 // Draw message text
                 context.fillStyle = 'black';
-                context.fillText(user.message, characterPositionX + characterSize / 2, bubbleY + bubbleHeight / 2);
+                context.fillText(user.message, characterPositionX + convertToResizeWidthHeight(characterSize,characterSize).width / 2, bubbleY + bubbleHeight / 2);
             }
         }
     }
@@ -372,8 +418,8 @@ function render() {
 canvas.addEventListener('contextmenu', (event) => {
     const rect = canvas.getBoundingClientRect();
     const targetPosition = {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
+x: convertToBase(event.clientX - rect.left, event.clientY - rect.top).x,
+        y: convertToBase(event.clientX - rect.left, event.clientY - rect.top).y
     };
 
     // Send the target position to the server
