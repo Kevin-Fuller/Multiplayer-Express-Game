@@ -126,24 +126,8 @@ function preloadFurnitureImages() {
 const propAdjustment = 10
 
 
-import { addMapListeners, renderMap, drawMapButton } from './map/map.js';
-
-
-// ... (other variable declarations and imports)
 let isMapOpen = false;
-// Call this function to add event listeners for the map button
-addMapListeners(canvas, () => {
-    // Toggle the map state
-    isMapOpen = !isMapOpen;
-    // Handle map button click (e.g., open map, change room, etc.)
-    console.log('Map button clicked!');
-    console.log(isMapOpen)
-
-    // Redraw the canvas
-    render();
-});
-
-
+import {drawMapButton, drawMap} from './map/map.js'
 
 function render() {
     // Clear the canvas before drawing the updated positions
@@ -403,13 +387,10 @@ function render() {
             }
         }
     }
-    if (isMapOpen) {
-        // Draw the map
-        renderMap(context, canvas);
-    } else {
-        // Draw the map button
-        drawMapButton(context);
-    }
+  
+    drawMap(isMapOpen, context, canvas, convertToResizeWidthHeight(config.mapImage.width, config.mapImageHeight))
+    drawMapButton(isMapOpen, isMouseOverMapButton, isMouseOverMapCloseButton, context, convertToResizeWidthHeight(config.closeButtonX, config.closeButtonY), convertToResizeWidthHeight(config.closeButtonWidthHeight, config.closeButtonWidthHeight))
+  
 }
 
 
@@ -427,6 +408,38 @@ x: convertToBase(event.clientX - rect.left, event.clientY - rect.top).x,
 
     event.preventDefault();
 });
+
+let isMouseOverMapButton = false;
+let isMouseOverMapCloseButton = false;
+
+import config from './helpers/config.js';
+
+canvas.addEventListener("mousemove", (event) => {
+    const mapButtonDistanceFromTopAndLeft = config.mapButtonDistanceFromTopAndLeft;
+    const mapButtonWidth = config.mapButtonWidth;
+    const mapButtonHeight = config.mapButtonHeight;
+
+
+    const rect = canvas.getBoundingClientRect();
+    const targetPosition = {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+    };
+    const topLeftMapButton = { x: mapButtonDistanceFromTopAndLeft, y: mapButtonDistanceFromTopAndLeft };
+    const bottomRightMapButton = { x: mapButtonDistanceFromTopAndLeft + mapButtonWidth, y: mapButtonDistanceFromTopAndLeft + mapButtonHeight };
+    isMouseOverMapButton = checkIfOver(targetPosition.x, targetPosition.y, topLeftMapButton, bottomRightMapButton);
+
+
+    const closeButtonResizeXY = convertToResizeWidthHeight(config.closeButtonX, config.closeButtonY);
+    const closeButtonResizeWidthHeight = convertToResizeWidthHeight(config.closeButtonWidthHeight, config.closeButtonWidthHeight)
+    const topLeftCloseButton = {x: closeButtonResizeXY.width, y: closeButtonResizeXY.height};
+    const bottomRightCloseButton = {x: closeButtonResizeXY.width + closeButtonResizeWidthHeight.width, y: closeButtonResizeXY.height + closeButtonResizeWidthHeight.height};
+    isMouseOverMapCloseButton = checkIfOver(targetPosition.x, targetPosition.y, topLeftCloseButton, bottomRightCloseButton)
+});
+function checkIfOver(x, y, topLeft, bottomRight) {
+    return x >= topLeft.x && x <= bottomRight.x && y >= topLeft.y && y <= bottomRight.y;
+}
+
 
 const goToIceburgButton = document.getElementById("goToIceburg");
 const goToPlazaButton = document.getElementById("goToPlaza");
@@ -477,12 +490,18 @@ socket.on("userAdded", (userId, userData) => {
 
 // Event: Handle mouse click on the canvas
 canvas.addEventListener('click', (event) => {
-    const targetPosition = {
-        x: event.clientX,
-        y: event.clientY 
-    };
+    
+    //check if clicking the map open button
+    if(isMouseOverMapButton && !isMapOpen){
+        isMapOpen = true;
+    }
 
-    console.log(targetPosition)
+    //check if clicking the map close button
+    if(isMouseOverMapCloseButton && isMapOpen){
+        isMapOpen = false;
+    }
+
+    
 });
 
 // Event: Handle the removal of users
