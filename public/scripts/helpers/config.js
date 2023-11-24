@@ -27,6 +27,9 @@ const config = {
     closeButtonWidthHeight: 20,
     closeButtonX: 610,
     closeButtonY: 85,
+    openButtonWidthHeight: 60,
+    openButtonX: 10,
+    openButtonY: 10,
 
 
     baseX: 800,

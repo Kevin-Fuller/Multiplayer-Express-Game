@@ -1,20 +1,20 @@
 import config from '../helpers/config.js';
 
-function drawMapButton(isMapOpen, isMouseOverMapButton, isMouseOverCloseButton, context, closeButtonXY, closeButtonNewSize) {
-    const mapButtonDistanceFromTopAndLeft = config.mapButtonDistanceFromTopAndLeft;
-    const mapButtonWidth = config.mapButtonWidth;
-    const mapButtonHeight = config.mapButtonHeight;
+function drawMapButton(isMapOpen, isMouseOverMapButton, isMouseOverCloseButton, context, closeButtonXY, closeButtonNewSize, openButtonXY, openButtonNewSize) {
+    //import images
     const mapButtonHover = config.mapButtonHover;
     const mapButtonNormal = config.mapButtonNormal
     const mapCloseButton = config.closeButton
     const mapCloseButtonHover = config.closeButtonHover
+
+
     //if the map isnt open, draw the button
     if(!isMapOpen) {
-        context.drawImage(mapButtonNormal, mapButtonDistanceFromTopAndLeft, mapButtonDistanceFromTopAndLeft, mapButtonWidth,  mapButtonHeight);
         if (!isMapOpen && isMouseOverMapButton) {
-            context.drawImage(mapButtonHover, mapButtonDistanceFromTopAndLeft, mapButtonDistanceFromTopAndLeft, mapButtonWidth, mapButtonHeight);
+            
+            context.drawImage(mapButtonHover, openButtonXY.width,  openButtonXY.height, openButtonNewSize.width, openButtonNewSize.height);
         } else {
-            context.drawImage(mapButtonNormal, mapButtonDistanceFromTopAndLeft, mapButtonDistanceFromTopAndLeft, mapButtonWidth, mapButtonHeight);
+            context.drawImage(mapButtonNormal,  openButtonXY.width,  openButtonXY.height, openButtonNewSize.width, openButtonNewSize.height);
         }
 
     } else {

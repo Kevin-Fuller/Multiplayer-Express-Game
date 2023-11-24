@@ -389,7 +389,16 @@ function render() {
     }
   
     drawMap(isMapOpen, context, canvas, convertToResizeWidthHeight(config.mapImage.width, config.mapImageHeight))
-    drawMapButton(isMapOpen, isMouseOverMapButton, isMouseOverMapCloseButton, context, convertToResizeWidthHeight(config.closeButtonX, config.closeButtonY), convertToResizeWidthHeight(config.closeButtonWidthHeight, config.closeButtonWidthHeight))
+    drawMapButton(
+        isMapOpen, 
+        isMouseOverMapButton, 
+        isMouseOverMapCloseButton, 
+        context, 
+        convertToResizeWidthHeight(config.closeButtonX, config.closeButtonY), 
+        convertToResizeWidthHeight(config.closeButtonWidthHeight, config.closeButtonWidthHeight),
+        convertToResizeWidthHeight(config.openButtonX, config.openButtonY), 
+        convertToResizeWidthHeight(config.openButtonWidthHeight, config.openButtonWidthHeight)
+    )
   
 }
 
@@ -425,8 +434,11 @@ canvas.addEventListener("mousemove", (event) => {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
     };
-    const topLeftMapButton = { x: mapButtonDistanceFromTopAndLeft, y: mapButtonDistanceFromTopAndLeft };
-    const bottomRightMapButton = { x: mapButtonDistanceFromTopAndLeft + mapButtonWidth, y: mapButtonDistanceFromTopAndLeft + mapButtonHeight };
+
+    const openButtonResizeXY = convertToResizeWidthHeight(config.openButtonX, config.openButtonY)
+    const openButtonResizeWidthHeight = convertToResizeWidthHeight(config.openButtonWidthHeight, config.openButtonWidthHeight)
+    const topLeftMapButton = { x:openButtonResizeXY.width, y: openButtonResizeXY.height };
+    const bottomRightMapButton = { x: openButtonResizeXY.width +  openButtonResizeWidthHeight.width, y:  openButtonResizeXY.height +  openButtonResizeWidthHeight.height };
     isMouseOverMapButton = checkIfOver(targetPosition.x, targetPosition.y, topLeftMapButton, bottomRightMapButton);
 
 
