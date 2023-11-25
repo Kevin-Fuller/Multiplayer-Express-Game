@@ -20,8 +20,8 @@ const config = {
     mapButtonHover: mapButtonHover,
     mapButtonDistanceFromTopAndLeft: 10,
     mapImage: mapImage,
-    mapImageWidth: mapImage.width,
-    mapImageHeight: mapImage.height,
+    mapImageWidth: 1024,
+    mapImageHeight: 689,
     closeButton: closeButton,
     closeButtonHover: closeButtonHover,
     closeButtonWidthHeight: 20,
@@ -37,5 +37,6 @@ const config = {
     resizeX: 1600,
     resizeY: 1000,
 };
+
 
 export default config;

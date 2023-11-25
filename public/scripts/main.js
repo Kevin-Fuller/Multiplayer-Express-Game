@@ -447,26 +447,24 @@ canvas.addEventListener("mousemove", (event) => {
     const topLeftCloseButton = {x: closeButtonResizeXY.width, y: closeButtonResizeXY.height};
     const bottomRightCloseButton = {x: closeButtonResizeXY.width + closeButtonResizeWidthHeight.width, y: closeButtonResizeXY.height + closeButtonResizeWidthHeight.height};
     isMouseOverMapCloseButton = checkIfOver(targetPosition.x, targetPosition.y, topLeftCloseButton, bottomRightCloseButton)
+
+    mouseOverMapIcons.forEach(element => {
+        const resizeXY = convertToResizeWidthHeight(element.topleftxy.x, element.topleftxy.y);
+        const resizeWidthHeight =  convertToResizeWidthHeight(element.imageWidth, element.imageHeight);
+        const topLeftButton = {x: resizeXY.width, y: resizeXY.height};
+        const bottomRightButton = {x: resizeXY.width + resizeWidthHeight.width, y: resizeXY.height + resizeWidthHeight.height};
+        element.mouseOver =  checkIfOver(targetPosition.x, targetPosition.y, topLeftButton, bottomRightButton)
+    });    
 });
 function checkIfOver(x, y, topLeft, bottomRight) {
     return x >= topLeft.x && x <= bottomRight.x && y >= topLeft.y && y <= bottomRight.y;
 }
 
 
-const goToIceburgButton = document.getElementById("goToIceburg");
-const goToPlazaButton = document.getElementById("goToPlaza");
-
 function changeRoom(room) {
     socket.emit("changeRoom", room)
 }
 
-goToIceburgButton.addEventListener("click", () => {
-    changeRoom("iceburg")
-})
-
-goToPlazaButton.addEventListener("click", () => {
-    changeRoom("plaza")
-})
 
 
 
@@ -499,6 +497,26 @@ socket.on("userAdded", (userId, userData) => {
     render();
 });
 
+let mouseOverMapIcons = [
+    {
+        topleftxy: {x: 265, y: 240},
+        imageWidth: 130,
+        imageHeight: 55,
+        imagesrc: "",
+        mouseOver: false,
+        goTo: "plaza",
+    },
+    {
+        topleftxy: {x: 550, y: 135},
+        imageWidth: 65,
+        imageHeight: 35,
+        imagesrc: "",
+        mouseOver: false,
+        goTo: "iceburg"
+    }
+]
+
+
 
 // Event: Handle mouse click on the canvas
 canvas.addEventListener('click', (event) => {
@@ -511,6 +529,16 @@ canvas.addEventListener('click', (event) => {
     //check if clicking the map close button
     if(isMouseOverMapCloseButton && isMapOpen){
         isMapOpen = false;
+    }
+
+    if(isMapOpen){
+        mouseOverMapIcons.forEach(icon =>{
+
+            if(icon.mouseOver == true) {
+                changeRoom(icon.goTo);
+                isMapOpen = false;
+            }
+        })
     }
 
     

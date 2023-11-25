@@ -25,6 +25,7 @@ function drawMapButton(isMapOpen, isMouseOverMapButton, isMouseOverCloseButton, 
         }
     }
 }
+
 function drawMap(isMapOpen, context, canvas, adjustedMap) {
     if (isMapOpen) {
         const mapConfig = config
