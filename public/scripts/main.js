@@ -130,6 +130,7 @@ let isMapOpen = false;
 import {drawMapButton, drawMap} from './map/map.js'
 
 function render() {
+
     // Clear the canvas before drawing the updated positions
     context.clearRect(0, 0, canvas.width, canvas.height);
     // Preload furniture spritesheets
@@ -477,6 +478,11 @@ function changeRoom(room) {
     socket.emit("changeRoom", room)
 }
 
+socket.on("test", (message)=>{
+    console.log(message)
+    changeRoom(message)
+})
+
 
 
 
@@ -495,6 +501,7 @@ socket.on("roomUpdate", (roomData) => {
         canvas.style.backgroundSize = 'cover';
         canvas.style.backgroundPosition = "center";
     }
+
 
     // Render the updated positions
     render();
@@ -516,7 +523,7 @@ let mouseOverMapIcons = [
         imageHeight: 55,
         imagesrc: "",
         mouseOver: false,
-        goTo: "plaza",
+        goTo: "towncenter",
     },
     {
         topleftxy: {x: 550, y: 135},
@@ -586,3 +593,119 @@ sendMessageInput.addEventListener('keydown', (event) => {
         event.preventDefault();
     }
 });
+
+
+const connect4Button = document.getElementById("connect4");
+connect4Button.addEventListener("click", ()=>{
+    socket.emit("joinConnect4Room", "room1");
+})
+
+const quitConnect4 = document.getElementById("quitConnect4Game")
+quitConnect4.addEventListener("click", ()=>{
+    socket.emit("quitConnect4", "room1")
+})
+
+socket.on("connect4turn", (message)=>{
+    console.log(message)
+})
+
+
+socket.on("connect4results", (message)=>{
+    console.log(message)
+})
+
+function dropPiece(col) {
+    socket.emit("dropconnect4", {column: col, roomId: "room1"});
+}
+
+socket.on("turnUpdateConnect4", (board)=>{
+    drawConnect4(board)
+})
+
+socket.on("gameOverConnect4", (message) => {
+    console.log(`winner ${message.winner}`);
+
+    // Hide the buttons when the game is over
+    const buttonRow = document.querySelector('.connect4-row-buttons');
+    if (buttonRow) {
+        buttonRow.style.display = 'none';
+    }
+});
+
+const connect4Game = document.getElementById("connect4Game");
+
+function drawConnect4(board) {
+    connect4Game.innerHTML = '';
+
+    // Create a row for the buttons to drop pieces
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'connect4-row-buttons'; // Add a class for styling if needed
+
+    // Loop through the columns to create buttons
+    for (let col = 0; col < board[0].length; col++) {
+        const button = document.createElement('button');
+        button.innerText = 'Drop';
+        button.addEventListener('click', () => dropPiece(col));
+        buttonRow.appendChild(button);
+    }
+
+    // Append the button row to the connect4Game div
+    connect4Game.appendChild(buttonRow);
+
+    // Show the buttons if they were hidden in a previous game
+    buttonRow.style.display = 'flex'; // Adjust the display property as needed
+
+    // Loop through the rows of the board
+    for (let row = 0; row < board.length; row++) {
+        // Create a div element for each row
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'connect4-row'; // Add a class for styling if needed
+
+        // Loop through the columns of the row
+        for (let col = 0; col < board[row].length; col++) {
+            // Create a div element for each cell
+            const cell = document.createElement('div');
+
+            // Set the size of each cell
+            cell.style.width = '10px';
+            cell.style.height = '10px';
+
+            // Set the background color based on the value in the board
+            switch (board[row][col]) {
+                case 0:
+                    // Empty cell
+                    cell.style.backgroundColor = 'white';
+                    break;
+                case 1:
+                    // Blue disc
+                    cell.style.backgroundColor = 'blue';
+                    break;
+                case 2:
+                    // Red disc
+                    cell.style.backgroundColor = 'red';
+                    break;
+                default:
+                    // Handle other values as needed
+                    break;
+            }
+
+            // Append the cell to the row div
+            rowDiv.appendChild(cell);
+        }
+
+        // Append the row div to the connect4Game div
+        connect4Game.appendChild(rowDiv);
+    }
+}
+
+// Example: Call the function with a sample board
+const sampleBoard = [
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 2, 0, 0],
+    [0, 0, 0, 2, 1, 0, 0],
+    [0, 0, 0, 1, 2, 0, 0],
+];
+
+drawConnect4(sampleBoard);

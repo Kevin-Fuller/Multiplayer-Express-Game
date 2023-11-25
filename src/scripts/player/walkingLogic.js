@@ -57,6 +57,8 @@ function handleMove(socket, targetPosition, rooms, io) {
 
         // Broadcast the updated user data to users in the same room
         io.to(room).emit("roomUpdate", rooms[room]);
+
+
     }
 }
 
