@@ -29,19 +29,15 @@ body{
 
 #game-ui-elements {
     width: 100%;
-    position: absolute;
-    bottom: 0;
-    padding: 5px;
-    left: 0;
-    height: 40px;
     z-index: 2;
 }
 
 .bottom-navigation {
-    width: 80%;
+    width: 100%;
+
+    position: absolute;
+    bottom: 0;
     height: 40px;
-    margin-left: auto;
-    margin-right: auto;
     background-color: aqua;
     border-top-right-radius: 10px;
     border-top-left-radius: 10px;
@@ -49,4 +45,26 @@ body{
 
 .connect4-row {
     display: flex;
+}
+
+.connect4 {
+    background-color: blue;
+    border-radius: 10px;
+}
+
+#connect4gamewrapper {
+    position: absolute
+}
+
+.connect4-row-buttons {
+    display: flex;
+    justify-content: space-around;
+}
+
+#connect4grabber {
+    background-color: purple;
+    height: 30px;
+    width: 100px;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 10px;
 }

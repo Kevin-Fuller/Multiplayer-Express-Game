@@ -119,6 +119,8 @@ function preloadFurnitureImages() {
             img.src = spritesheet;
             furnitureImages[spritesheet] = img;
         }
+
+
     }
 }
 
@@ -409,15 +411,19 @@ function render() {
 canvas.addEventListener('contextmenu', (event) => {
     const rect = canvas.getBoundingClientRect();
     const targetPosition = {
-x: convertToBase(event.clientX - rect.left, event.clientY - rect.top).x,
+        x: convertToBase(event.clientX - rect.left, event.clientY - rect.top).x,
         y: convertToBase(event.clientX - rect.left, event.clientY - rect.top).y
     };
 
     // Send the target position to the server
-    socket.emit('move', targetPosition);
+    moveTo(targetPosition.x, targetPosition.y)
 
     event.preventDefault();
 });
+
+function moveTo(x, y) {
+    socket.emit('move', {x: x, y: y});
+}
 
 let isMouseOverMapButton = false;
 let isMouseOverMapCloseButton = false;
@@ -560,6 +566,41 @@ canvas.addEventListener('click', (event) => {
         })
     }
 
+    const rect = canvas.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const clickY = event.clientY - rect.top;
+
+     // Check if the click is within the bounds of any Connect4 furniture
+     for (const furnitureId in furnitureInRoom) {
+        const furniture = furnitureInRoom[furnitureId];
+
+        if (
+            furniture.furnitureOptions.trigger &&
+            furniture.furnitureOptions.trigger.game &&
+            furniture.furnitureOptions.trigger.game === "connect4"
+        ) {
+            const {x, y} = convertToResize(furniture.x, furniture.y);
+            
+
+            const width = furniture.furnitureOptions.width;
+            const height = furniture.furnitureOptions.height;
+            const {widthNew, heightNew} = convertToResizeWidthHeight(width, height)
+
+            if (
+                clickX >= x &&
+                clickX <= x + width &&
+                clickY >= y &&
+                clickY <= y + height
+            ) {
+                joinConnect4(furniture.furnitureOptions.trigger.room)
+                moveTo(furniture.x, furniture.y)
+                
+                // Add your logic here for handling the click on Connect4 furniture
+                break; // Exit the loop if a Connect4 furniture is found
+            }
+        }
+    }
+
     
 });
 
@@ -594,8 +635,13 @@ sendMessageInput.addEventListener('keydown', (event) => {
     }
 });
 
+const connect4message = document.getElementById("connect4message")
 
 const connect4Button = document.getElementById("connect4");
+function joinConnect4(room){
+    socket.emit("joinConnect4Room", room);
+    drawConnect4(emptyBoard)
+}
 connect4Button.addEventListener("click", ()=>{
     socket.emit("joinConnect4Room", "room1");
 })
@@ -606,12 +652,12 @@ quitConnect4.addEventListener("click", ()=>{
 })
 
 socket.on("connect4turn", (message)=>{
-    console.log(message)
+    connect4message.innerHTML = message
 })
 
 
 socket.on("connect4results", (message)=>{
-    console.log(message)
+    connect4message.innerHTML = message
 })
 
 function dropPiece(col) {
@@ -633,9 +679,14 @@ socket.on("gameOverConnect4", (message) => {
 });
 
 const connect4Game = document.getElementById("connect4Game");
+const gameUI = document.getElementById("game-ui-elements")
+const connect4GameWrapper =  document.getElementById("connect4gamewrapper");
+
 
 function drawConnect4(board) {
+    connect4GameWrapper.style.display = "block"
     connect4Game.innerHTML = '';
+    console.log(board)
 
     // Create a row for the buttons to drop pieces
     const buttonRow = document.createElement('div');
@@ -644,7 +695,7 @@ function drawConnect4(board) {
     // Loop through the columns to create buttons
     for (let col = 0; col < board[0].length; col++) {
         const button = document.createElement('button');
-        button.innerText = 'Drop';
+        button.innerText = 'O';
         button.addEventListener('click', () => dropPiece(col));
         buttonRow.appendChild(button);
     }
@@ -667,8 +718,8 @@ function drawConnect4(board) {
             const cell = document.createElement('div');
 
             // Set the size of each cell
-            cell.style.width = '10px';
-            cell.style.height = '10px';
+            cell.style.width = '20px';
+            cell.style.height = '20px';
 
             // Set the background color based on the value in the board
             switch (board[row][col]) {
@@ -696,16 +747,71 @@ function drawConnect4(board) {
         // Append the row div to the connect4Game div
         connect4Game.appendChild(rowDiv);
     }
+
+
+
 }
 
+const gameWindow = canvas;
+const inventory = document.getElementById("connect4gamewrapper");
+const grabBar = document.getElementById("connect4grabber");
+
+
+let offset = [0,0];
+let isDown = false;
+
+grabBar.addEventListener("mousedown", (e)=>{
+    isDown = true;
+    grabBar.style.cursor = "grabbing"
+    offset = [
+        inventory.offsetLeft - e.clientX,
+        inventory.offsetTop - e.clientY
+    ];
+})
+
+grabBar.addEventListener("mouseup", ()=>{
+    isDown = false;
+    grabBar.style.cursor = "grab"
+})
+
+
+let mousePosition
+
+document.addEventListener('mousemove', function(event) {
+    event.preventDefault();
+    if (isDown) {
+        mousePosition = {
+            x : event.clientX,
+            y : event.clientY
+        };
+        if(mousePosition.x + offset[0] < 0){
+            inventory.style.left = "0" + 'px';
+        }else if (mousePosition.x + offset[0]+ inventory.offsetWidth > gameWindow.offsetWidth){
+            let calcX = gameWindow.offsetWidth - inventory.offsetWidth;
+            inventory.style.left = calcX + 'px';
+        } else {
+            inventory.style.left = (mousePosition.x + offset[0]) + 'px';
+        }
+        if(mousePosition.y + offset[1] < 0){
+            inventory.style.top  = "0" + 'px';
+        } 
+        else if (mousePosition.y + offset[1]+ inventory.offsetHeight > gameWindow.offsetHeight){
+            let calcY = gameWindow.offsetHeight - inventory.offsetHeight;
+            inventory.style.top = calcY + 'px';
+        } else {
+            inventory.style.top  = (mousePosition.y + offset[1]) + 'px';
+        }
+    }
+}, true);
+
 // Example: Call the function with a sample board
-const sampleBoard = [
+const emptyBoard = [
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 2, 0, 0],
-    [0, 0, 0, 2, 1, 0, 0],
-    [0, 0, 0, 1, 2, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
 ];
 
-drawConnect4(sampleBoard);
+// drawConnect4(sampleBoard);

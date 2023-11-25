@@ -32,6 +32,15 @@ const furnitureOptions = {
         height: 100,
         animation: false,
         floor: false
+    },
+    connect4: {
+        name: "connect4",
+        spritesheet: "images/games/connect4/board.png",
+        width: 50,
+        height: 50,
+        animation: false,
+        floor: false,
+        trigger: {game: "connect4", room: "room1"}
     }
 }
 
@@ -90,8 +99,16 @@ let rooms = {
         src: "https://preview.redd.it/nzvzedygrjt81.jpg?width=640&crop=smart&auto=webp&s=49a4d8a03e68e4bf83a05ece9b8ece8a5a5fec89", 
         startingX: 260, 
         startingY: 400,
-        users: {}},
-}
+        users: {},
+        furniture: [
+            {
+                type: "connect4",
+                x: 300, // Adjust the x-coordinate based on your preference
+                y: 200, // Adjust the y-coordinate based on your preference
+                frame: 0,
+                furnitureOptions: furnitureOptions["connect4"],
+                }]
+            }}
 
 const clothesOptions = {
     head: {
@@ -282,10 +299,13 @@ io.on("connection", (socket) => {
         let player1 = connect4GameInfo.player1;
         let player2 = connect4GameInfo.player2;
         let playerTurn = connect4GameInfo.playerTurn;
+        console.log(data)
+        
     
         if (socket.id === playerTurn) {
             // Switch turns
             playerTurn = playerTurn === player1 ? player2 : player1;
+            console.log("hit here")
     
             // Get the current game state
             let game = connect4GameInfo.game;
