@@ -427,6 +427,7 @@ canvas.addEventListener("mousemove", (event) => {
     const mapButtonDistanceFromTopAndLeft = config.mapButtonDistanceFromTopAndLeft;
     const mapButtonWidth = config.mapButtonWidth;
     const mapButtonHeight = config.mapButtonHeight;
+    let cursorStyle = "default"
 
 
     const rect = canvas.getBoundingClientRect();
@@ -440,6 +441,9 @@ canvas.addEventListener("mousemove", (event) => {
     const topLeftMapButton = { x:openButtonResizeXY.width, y: openButtonResizeXY.height };
     const bottomRightMapButton = { x: openButtonResizeXY.width +  openButtonResizeWidthHeight.width, y:  openButtonResizeXY.height +  openButtonResizeWidthHeight.height };
     isMouseOverMapButton = checkIfOver(targetPosition.x, targetPosition.y, topLeftMapButton, bottomRightMapButton);
+    if(isMouseOverMapButton && isMapOpen == false) {
+        cursorStyle = "pointer";
+    }
 
 
     const closeButtonResizeXY = convertToResizeWidthHeight(config.closeButtonX, config.closeButtonY);
@@ -447,6 +451,10 @@ canvas.addEventListener("mousemove", (event) => {
     const topLeftCloseButton = {x: closeButtonResizeXY.width, y: closeButtonResizeXY.height};
     const bottomRightCloseButton = {x: closeButtonResizeXY.width + closeButtonResizeWidthHeight.width, y: closeButtonResizeXY.height + closeButtonResizeWidthHeight.height};
     isMouseOverMapCloseButton = checkIfOver(targetPosition.x, targetPosition.y, topLeftCloseButton, bottomRightCloseButton)
+    if(isMouseOverMapCloseButton && isMapOpen == true) {
+        cursorStyle = "pointer";
+    }
+
 
     mouseOverMapIcons.forEach(element => {
         const resizeXY = convertToResizeWidthHeight(element.topleftxy.x, element.topleftxy.y);
@@ -454,7 +462,11 @@ canvas.addEventListener("mousemove", (event) => {
         const topLeftButton = {x: resizeXY.width, y: resizeXY.height};
         const bottomRightButton = {x: resizeXY.width + resizeWidthHeight.width, y: resizeXY.height + resizeWidthHeight.height};
         element.mouseOver =  checkIfOver(targetPosition.x, targetPosition.y, topLeftButton, bottomRightButton)
+        if(element.mouseOver && isMapOpen == true) {
+            cursorStyle = "pointer";
+        }
     });    
+    canvas.style.cursor = cursorStyle;
 });
 function checkIfOver(x, y, topLeft, bottomRight) {
     return x >= topLeft.x && x <= bottomRight.x && y >= topLeft.y && y <= bottomRight.y;
