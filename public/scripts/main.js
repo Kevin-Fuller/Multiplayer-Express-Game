@@ -637,18 +637,17 @@ sendMessageInput.addEventListener('keydown', (event) => {
 
 const connect4message = document.getElementById("connect4message")
 
-const connect4Button = document.getElementById("connect4");
+
 function joinConnect4(room){
     socket.emit("joinConnect4Room", room);
     drawConnect4(emptyBoard)
 }
-connect4Button.addEventListener("click", ()=>{
-    socket.emit("joinConnect4Room", "room1");
-})
+
 
 const quitConnect4 = document.getElementById("quitConnect4Game")
 quitConnect4.addEventListener("click", ()=>{
     socket.emit("quitConnect4", "room1")
+    connect4GameWrapper.style.display = "none"
 })
 
 socket.on("connect4turn", (message)=>{
