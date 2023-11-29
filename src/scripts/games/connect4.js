@@ -30,6 +30,17 @@ function joinConnect4Room(roomId, connect4Rooms, io, player) {
     }
 }
 
+function endConnect4(winner, loser, io, connect4Rooms, roomId) {
+            
+    if(winner != null) {
+    io.to(winner).emit("connect4results", "you won");
+    io.to(loser).emit("connect4results", "you lost");
+    connect4Rooms[roomId].player1 = null;
+    connect4Rooms[roomId].player2 = null;
+    }
+    
+}
+
 function isConnectFour(game, row, col) {
     const player = game[row][col];
 
@@ -124,9 +135,21 @@ function isConnectFour(game, row, col) {
     return count >= 4;
 }
 
+// Function to find the lowest empty row in a column
+function findLowestEmptyRow(game, column) {
+    for (let row = game.length - 1; row >= 0; row--) {
+        if (game[row][column] === 0) {
+            return row;
+        }
+    }
+    return -1; // Column is full
+}
+
 module.exports = {
     startConnect4Game,
     createConnect4Room,
     joinConnect4Room,
     isConnectFour,
+    endConnect4,
+    findLowestEmptyRow,
 };

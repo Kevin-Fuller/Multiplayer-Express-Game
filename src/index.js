@@ -39,7 +39,7 @@ const furnitureOptions = {
         height: 50,
         animation: false,
         floor: false,
-        trigger: {game: "connect4", room: "room1"}
+        trigger: { game: "connect4", room: "room1" }
     }
 }
 
@@ -89,14 +89,17 @@ let rooms = {
         ],
         users: {}
     },
-    towncenter: {src: "https://pbs.twimg.com/media/E9mVH28XsAIyG6F?format=jpg&name=4096x4096", startingX: 350, startingY: 400, users: {},  
-    doors: [{
-        topLeft: {x: 250, y: 280}, 
-        bottomRight: {x: 320, y: 345}, goTo: "coffeeshop"}]},
-    igloo: {users: {}},
+    towncenter: {
+        src: "https://pbs.twimg.com/media/E9mVH28XsAIyG6F?format=jpg&name=4096x4096", startingX: 350, startingY: 400, users: {},
+        doors: [{
+            topLeft: { x: 250, y: 280 },
+            bottomRight: { x: 320, y: 345 }, goTo: "coffeeshop"
+        }]
+    },
+    igloo: { users: {} },
     coffeeshop: {
-        src: "https://preview.redd.it/nzvzedygrjt81.jpg?width=640&crop=smart&auto=webp&s=49a4d8a03e68e4bf83a05ece9b8ece8a5a5fec89", 
-        startingX: 260, 
+        src: "https://preview.redd.it/nzvzedygrjt81.jpg?width=640&crop=smart&auto=webp&s=49a4d8a03e68e4bf83a05ece9b8ece8a5a5fec89",
+        startingX: 260,
         startingY: 400,
         users: {},
         furniture: [
@@ -106,8 +109,9 @@ let rooms = {
                 y: 200, // Adjust the y-coordinate based on your preference
                 frame: 0,
                 furnitureOptions: furnitureOptions["connect4"],
-                }]
-            }}
+            }]
+    }
+}
 
 const clothesOptions = {
     head: {
@@ -132,12 +136,14 @@ let connect4Rooms = {
     room1: {
         player1: null,
         player2: null,
-        game: []}, 
+        game: []
+    },
     room2: {
         player1: null,
         player2: null,
-        game: []}
+        game: []
     }
+}
 
 // Create a map to store user IDs and their corresponding sockets
 const userSocketMap = {};
@@ -174,7 +180,7 @@ io.on("connection", (socket) => {
             return colors[randomIndex];
         }
         function getRandomHat() {
-            const hat = [clothesOptions.head.head1,clothesOptions.head.head2, null];
+            const hat = [clothesOptions.head.head1, clothesOptions.head.head2, null];
             const randomIndex = Math.floor(Math.random() * hat.length);
             return hat[randomIndex];
         }
@@ -231,71 +237,61 @@ io.on("connection", (socket) => {
 
     socket.on("joinConnect4Room", (roomId) => {
         // Join a Connect 4 game room
-        if(connect4Rooms[roomId]){
-            if(connect4Rooms[roomId].player1 == null){
+        if (connect4Rooms[roomId]) {
+            if (connect4Rooms[roomId].player1 == null) {
                 connect4Rooms = connect4Logic.createConnect4Room(roomId, connect4Rooms, socket)
-            }else if(connect4Rooms[roomId].player2 == null){
+            } else if (connect4Rooms[roomId].player2 == null) {
                 connect4Rooms = connect4Logic.joinConnect4Room(roomId, connect4Rooms, io, socket);
             }
         }
 
 
-      });
+    });
 
-    function endConnect4(winner, loser, roomId) {
-            
-        if(winner != null) {
-        io.to(winner).emit("connect4results", "you won");
-        io.to(loser).emit("connect4results", "you lost");
-        connect4Rooms[roomId].player1 = null;
-        connect4Rooms[roomId].player2 = null;
-        }
-        
-    }
 
-      socket.on("quitConnect4", (roomId)=>{
+    socket.on("quitConnect4", (roomId) => {
         const connect4GameInfo = connect4Rooms[roomId];
         let loser = socket.id;
         const player1 = connect4GameInfo.player1;
         const player2 = connect4GameInfo.player2;
         let winner;
-        if(player1 == loser) {
+        if (player1 == loser) {
             winner = player2
-        } else if(player2 == loser){
+        } else if (player2 == loser) {
             winner = player1;
         }
-        endConnect4(winner, loser, roomId);
-      })
+        connect4Logic.endConnect4(winner, loser, io, connect4Rooms, roomId);
+    })
 
-      socket.on("dropconnect4", (data) => {
+    socket.on("dropconnect4", (data) => {
         const droppedColumn = data.column;
         const connect4GameInfo = connect4Rooms[data.roomId];
         let player1 = connect4GameInfo.player1;
         let player2 = connect4GameInfo.player2;
         let playerTurn = connect4GameInfo.playerTurn;
         console.log(data)
-        
-    
+
+
         if (socket.id === playerTurn) {
             // Switch turns
             playerTurn = playerTurn === player1 ? player2 : player1;
             console.log("hit here")
-    
+
             // Get the current game state
             let game = connect4GameInfo.game;
-    
+
             // Find the lowest available row in the dropped column
-            let row = findLowestEmptyRow(game, droppedColumn);
-    
+            let row = connect4Logic.findLowestEmptyRow(game, droppedColumn);
+
             // Check if the column is full
             if (row !== -1) {
                 // Update the game board with the player's piece
                 game[row][droppedColumn] = playerTurn === player1 ? 1 : 2;
-    
+
                 // Emit an event to inform each player about the updated game state
                 io.to(player1).emit('turnUpdateConnect4', game);
                 io.to(player2).emit('turnUpdateConnect4', game);
-    
+
                 // Check if the current move resulted in a winning state
                 if (connect4Logic.isConnectFour(game, row, droppedColumn)) {
                     // Emit an event to inform both players about the winning state
@@ -305,7 +301,7 @@ io.on("connection", (socket) => {
                     player2 = null;
                     playerTurn = null;
                     console.log("game over")
-    
+
                     // Reset the game state or perform any other actions for a new game
                     // connect4GameInfo.game = initializeGame(); // You need to define an initializeGame function
                 } else {
@@ -318,97 +314,89 @@ io.on("connection", (socket) => {
             }
         }
     });
-    // Function to find the lowest empty row in a column
-function findLowestEmptyRow(game, column) {
-    for (let row = game.length - 1; row >= 0; row--) {
-        if (game[row][column] === 0) {
-            return row;
-        }
-    }
-    return -1; // Column is full
-}
+
 
 
     socket.on("changeRoom", (targetRoom) => {
         // Get the user ID from the socket
         const userId = socket.id;
-    
+
         // Check if the target room exists
         if (!rooms[targetRoom]) {
             console.log(`Invalid target room: ${targetRoom}`);
             return;
         }
-    
+
         // Check if the user exists in the current room
         const currentRoom = Object.keys(rooms).find((room) => rooms[room].users[userId]);
         if (!currentRoom) {
             console.log(`User not found in any room`);
             return;
         }
-    
+
         // Remove the user from the current room
         const user = rooms[currentRoom].users[userId];
         delete rooms[currentRoom].users[userId];
-    
+
         // Leave the user from the current room
         socket.leave(currentRoom);
-    
+
         // Join the user to the target room
         socket.join(targetRoom);
-    
+
         // Set the user's position to the starting position of the new room
         user.x = rooms[targetRoom].startingX;
         user.y = rooms[targetRoom].startingY;
         user.animationTarget = { x: rooms[targetRoom].startingX, y: rooms[targetRoom].startingY };
-    
+
         // Clear the user's animation interval and reset animation-related properties
         clearInterval(user.animationIntervalId);
         user.animationIntervalId = null;
         user.animationTarget = null;
         user.animationCurrentStep = 0;
         user.delayBetweenFrames = 0;
-    
+
         // Add the user to the target room
         rooms[targetRoom].users[userId] = user;
-    
+
         // Broadcast the addition of the user to the target room
         io.to(targetRoom).emit("userAdded", userId, user);
-    
+
         // Emit the updated room information to the user
         io.to(userId).emit("roomUpdate", rooms[targetRoom]);
-    
+
         // Broadcast the updated positions to users in the same room
         io.to(currentRoom).emit("roomUpdate", rooms[currentRoom]);
         io.to(targetRoom).emit("roomUpdate", rooms[targetRoom]);
-    
+
         console.log(`User ${userId} changed room from ${currentRoom} to ${targetRoom}`);
     });
-    
-    
-    
+
+
+
 
     // Event: Disconnect
-socket.on("disconnect", function () {
-    console.log('User disconnected');
+    socket.on("disconnect", function () {
+        console.log('User disconnected');
 
-    // Remove the user from the specified room
-    for (const room in rooms) {
-        if (rooms[room].users[socket.id]) {
-            const user = rooms[room].users[socket.id];
+        // Remove the user from the specified room
+        for (const room in rooms) {
+            if (rooms[room].users[socket.id]) {
+                const user = rooms[room].users[socket.id];
 
-            // Clear the animation interval when a user disconnects
-            if (user.animationIntervalId) {
-                clearInterval(user.animationIntervalId);
+                // Clear the animation interval when a user disconnects
+                if (user.animationIntervalId) {
+                    clearInterval(user.animationIntervalId);
+                }
+
+                // Broadcast the removal of a user to others in the room
+                socket.to(room).emit("userRemoved", socket.id);
+
+                delete rooms[room].users[socket.id];
+                io.to(room).emit("roomUpdate", rooms[room]);
             }
-
-            // Broadcast the removal of a user to others in the room
-            socket.to(room).emit("userRemoved", socket.id);
-
-            delete rooms[room].users[socket.id];
-            io.to(room).emit("roomUpdate", rooms[room]);
         }
-    }
-});
+    });
 });
 
 // Server-side game loop with fixed time step
@@ -447,7 +435,7 @@ function relocateUser(userPositionX, userPositionY, room, userId, rooms, socket)
 
 
                 // Emit an event to the user who changed rooms to inform them about their new room
-                
+
 
                 return door.goTo;
             }
@@ -464,50 +452,51 @@ setInterval(() => {
 
 
             const user = rooms[room].users[userId];
-            
-            if(user){
-            if (user.animationTarget && user.animationCurrentStep < user.animationTotalSteps) {
-                // Increment the animation step
-                user.animationCurrentStep++;
-                user.finalFrame = animations[user.state][0];
 
-                // Update user position
-                user.x += user.deltaX;
-                user.y += user.deltaY;
+            if (user) {
+                if (user.animationTarget && user.animationCurrentStep < user.animationTotalSteps) {
+                    // Increment the animation step
+                    user.animationCurrentStep++;
+                    user.finalFrame = animations[user.state][0];
 
-                // Determine the current animation frame based on the user's state
-                const animationFrames = animations[user.state];
-                if (user.delayBetweenFrames == 0) {
-                    const currentFrame = animationFrames[(user.animationCurrentStep) % animationFrames.length];
-                    user.currentFrame = currentFrame;
-                    user.delayBetweenFrames = framerate;
-                } else if (isNaN(user.delayBetweenFrames)) {
-                    user.delayBetweenFrames = framerate;
+                    // Update user position
+                    user.x += user.deltaX;
+                    user.y += user.deltaY;
+
+                    // Determine the current animation frame based on the user's state
+                    const animationFrames = animations[user.state];
+                    if (user.delayBetweenFrames == 0) {
+                        const currentFrame = animationFrames[(user.animationCurrentStep) % animationFrames.length];
+                        user.currentFrame = currentFrame;
+                        user.delayBetweenFrames = framerate;
+                    } else if (isNaN(user.delayBetweenFrames)) {
+                        user.delayBetweenFrames = framerate;
+                    } else {
+                        user.delayBetweenFrames = user.delayBetweenFrames - 1;
+                    }
                 } else {
-                    user.delayBetweenFrames = user.delayBetweenFrames - 1;
-                }
-            } else {
-                // Set the state to "idle" when the user is not walking
-                user.currentFrame = user.finalFrame
-                user.state = "idle";
+                    // Set the state to "idle" when the user is not walking
+                    user.currentFrame = user.finalFrame
+                    user.state = "idle";
 
-                // Ensure the user reaches the exact target position when the animation is complete
-                if (user.animationTarget) {
-                    user.x = user.animationTarget.x;
-                    user.y = user.animationTarget.y;
+                    // Ensure the user reaches the exact target position when the animation is complete
+                    if (user.animationTarget) {
+                        user.x = user.animationTarget.x;
+                        user.y = user.animationTarget.y;
+                    }
                 }
-            }
-            user.messageTimeout = user.messageTimeout - 1;
-            if (user.messageTimeout <= 0) {
-                user.message = ""
-            }
-            let userSocket = (userSocketMap[userId])
-            const relocate = relocateUser(user.x, user.y, room, userId, rooms, userSocketMap[userId])
-            if(relocate) {
-                userSocket.emit("test", relocate); 
-            }
+                user.messageTimeout = user.messageTimeout - 1;
+                if (user.messageTimeout <= 0) {
+                    user.message = ""
+                }
+                let userSocket = (userSocketMap[userId])
+                const relocate = relocateUser(user.x, user.y, room, userId, rooms, userSocketMap[userId])
+                if (relocate) {
+                    userSocket.emit("test", relocate);
+                }
 
-        }}
+            }
+        }
 
         // Broadcast the updated positions to users in the same room
         io.to(room).emit("roomUpdate", rooms[room]);
