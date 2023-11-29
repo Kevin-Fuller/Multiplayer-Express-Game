@@ -1,6 +1,9 @@
 *{
     margin: 0;
     padding: 0;
+    --uicolor1: #2a65ff;
+    --uicolor2: #64BEFF;
+    --uiwhite: white;
 }
 
 body{ 
@@ -26,6 +29,24 @@ body{
     height: fit-content;
 }
 
+.connect4buttondropper {
+    opacity: 0;
+    background-color: transparent;
+    border: none;
+}
+
+.connect4buttondropper:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
+.playerConnect4DropperButton {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid black;
+    background-color: grey;
+}
 
 #game-ui-elements {
     width: 100%;
@@ -45,11 +66,14 @@ body{
 
 .connect4-row {
     display: flex;
+    background-color: rgb(255, 208, 0);
 }
 
 .connect4 {
-    background-color: blue;
+    background-color: var(--uicolor1);
+    border: 2px solid var(--uiwhite);
     border-radius: 10px;
+    padding: 10px;
 }
 
 #connect4gamewrapper {
@@ -59,10 +83,12 @@ body{
 .connect4-row-buttons {
     display: flex;
     justify-content: space-around;
+    margin-bottom: 5px;
 }
 
 #connect4grabber {
-    background-color: purple;
+    background-color: var(--uicolor1);
+    border: 2px solid var(--uiwhite);
     height: 30px;
     width: 100px;
     border-top-right-radius: 10px;

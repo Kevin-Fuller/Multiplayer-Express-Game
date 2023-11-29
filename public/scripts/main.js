@@ -694,7 +694,8 @@ function drawConnect4(board) {
     // Loop through the columns to create buttons
     for (let col = 0; col < board[0].length; col++) {
         const button = document.createElement('button');
-        button.innerText = 'O';
+        button.classList.add("connect4buttondropper")
+        button.innerHTML = `<div class="playerConnect4DropperButton"></div>`;
         button.addEventListener('click', () => dropPiece(col));
         buttonRow.appendChild(button);
     }
@@ -719,20 +720,25 @@ function drawConnect4(board) {
             // Set the size of each cell
             cell.style.width = '20px';
             cell.style.height = '20px';
+            cell.style.borderRadius = '50%';
+            cell.style.margin= "2px";
 
             // Set the background color based on the value in the board
             switch (board[row][col]) {
                 case 0:
                     // Empty cell
-                    cell.style.backgroundColor = 'white';
+                    cell.style.backgroundColor = 'var(--uicolor1)';
+                    cell.style.border = "2px solid black";
                     break;
                 case 1:
                     // Blue disc
                     cell.style.backgroundColor = 'blue';
+                    cell.style.border = "2px solid black";
                     break;
                 case 2:
                     // Red disc
                     cell.style.backgroundColor = 'red';
+                    cell.style.border = "2px solid black";
                     break;
                 default:
                     // Handle other values as needed
