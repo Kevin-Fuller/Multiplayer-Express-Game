@@ -13,7 +13,6 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const express = require('express');
-const connect4Logic = require('./scripts/games/connect4'); 
 const walkingLogic = require('./scripts/player/walkingLogic'); // Import the walking logic file
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -143,6 +142,8 @@ let connect4Rooms = {
 // Create a map to store user IDs and their corresponding sockets
 const userSocketMap = {};
 
+const connect4Logic = require('./scripts/games/connect4.js');
+
 io.on("connection", (socket) => {
 
 
@@ -229,43 +230,17 @@ io.on("connection", (socket) => {
     });
 
     socket.on("joinConnect4Room", (roomId) => {
-        console.log("hit")
         // Join a Connect 4 game room
         if(connect4Rooms[roomId]){
             if(connect4Rooms[roomId].player1 == null){
-                createConnect4Room(roomId, socket)
+                connect4Rooms = connect4Logic.createConnect4Room(roomId, connect4Rooms, socket)
             }else if(connect4Rooms[roomId].player2 == null){
-                joinConnect4Room(roomId, socket);
+                connect4Rooms = connect4Logic.joinConnect4Room(roomId, connect4Rooms, io, socket);
             }
         }
-        console.log(connect4Rooms[roomId])
 
-        function createConnect4Room(roomId, player) {
-            connect4Rooms[roomId].player1 = player.id;
-        }
 
-        function joinConnect4Room(roomId, player) {
-            if(connect4Rooms[roomId].player1 != player.id) {
-                connect4Rooms[roomId].player2 = player.id;
-                startConnect4Game(roomId)
-            }
-        }
       });
-      function startConnect4Game(roomId) {
-        const connect4GameInfo = connect4Rooms[roomId];
-        const connect4Grid = [
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-        ];
-        connect4GameInfo.playerTurn =  connect4GameInfo.player1;
-        connect4GameInfo.game = connect4Grid;
-        io.to(connect4GameInfo.player2).emit("connect4turn", "waiting on player1");
-        io.to(connect4GameInfo.player1).emit("connect4turn", "your turn");
-    }
 
     function endConnect4(winner, loser, roomId) {
             
@@ -322,7 +297,7 @@ io.on("connection", (socket) => {
                 io.to(player2).emit('turnUpdateConnect4', game);
     
                 // Check if the current move resulted in a winning state
-                if (isConnectFour(game, row, droppedColumn)) {
+                if (connect4Logic.isConnectFour(game, row, droppedColumn)) {
                     // Emit an event to inform both players about the winning state
                     io.to(player1).emit('gameOverConnect4', { winner: playerTurn });
                     io.to(player2).emit('gameOverConnect4', { winner: playerTurn });
@@ -353,70 +328,6 @@ function findLowestEmptyRow(game, column) {
     return -1; // Column is full
 }
 
-function isConnectFour(game, row, col) {
-    const player = game[row][col];
-    
-    // Check horizontally
-    for (let c = 0; c <= 3; c++) {
-        if (col + c <= 6 && game[row][col + c] === player) {
-            if (c === 3) {
-                return true;
-            }
-        } else {
-            break;
-        }
-    }
-
-    // Check vertically
-    for (let r = 0; r <= 3; r++) {
-        if (row + r <= 5 && game[row + r][col] === player) {
-            if (r === 3) {
-                return true;
-            }
-        } else {
-            break;
-        }
-    }
-
-    // Check diagonally (top-left to bottom-right)
-    for (let i = -3; i <= 3; i++) {
-        if (row + i >= 0 && row + i + 3 <= 5 && col + i >= 0 && col + i + 3 <= 6) {
-            if (
-                game[row + i] && // Check if the row exists
-                game[row + i][col + i] === player &&
-                game[row + i + 1] &&
-                game[row + i + 1][col + i + 1] === player &&
-                game[row + i + 2] &&
-                game[row + i + 2][col + i + 2] === player &&
-                game[row + i + 3] &&
-                game[row + i + 3][col + i + 3] === player
-            ) {
-                return true;
-            }
-        }
-    }
-
-    // Check diagonally (top-right to bottom-left)
-    for (let i = -3; i <= 3; i++) {
-        if (row - i >= 0 && row - i - 3 <= 5 && col + i >= 0 && col + i + 3 <= 6) {
-            if (
-                game[row - i] && // Check if the row exists
-                game[row - i][col + i] === player &&
-                game[row - i - 1] &&
-                game[row - i - 1][col + i + 1] === player &&
-                game[row - i - 2] &&
-                game[row - i - 2][col + i + 2] === player &&
-                game[row - i - 3] &&
-                game[row - i - 3][col + i + 3] === player
-            ) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-    
 
     socket.on("changeRoom", (targetRoom) => {
         // Get the user ID from the socket
