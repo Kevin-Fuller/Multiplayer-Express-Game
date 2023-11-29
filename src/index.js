@@ -231,7 +231,6 @@ io.on("connection", (socket) => {
     socket.on("joinConnect4Room", (roomId) => {
         console.log("hit")
         // Join a Connect 4 game room
-        // connect4Logic.joinConnect4Room(roomId, socket.id);
         if(connect4Rooms[roomId]){
             if(connect4Rooms[roomId].player1 == null){
                 createConnect4Room(roomId, socket)
@@ -356,7 +355,7 @@ function findLowestEmptyRow(game, column) {
 
 function isConnectFour(game, row, col) {
     const player = game[row][col];
-
+    
     // Check horizontally
     for (let c = 0; c <= 3; c++) {
         if (col + c <= 6 && game[row][col + c] === player) {
