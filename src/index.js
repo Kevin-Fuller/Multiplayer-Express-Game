@@ -404,15 +404,15 @@ const serverTickRate = 1000 / 60; // 60 ticks per second
 
 
 const animations = {
-    walkingleft: [2, 10, 3, 10, 2, 9, 1, 9], // Example: frames 0 to 4 for walking animation
-    walkingupleft: [3, 11, 11, 11, 3, 10, 10], // Example: frames 0 to 4 for walking animation
-    walkingup: [4, 11, 3, 11, 4, -11, -3], // Example: frames 0 to 4 for walking animation
-    walkingupright: [-3, -11, -11, -11, -3, -10, -10], // Example: frames 0 to 4 for walking animation
-    walkingright: [-2, -10, -3, -10, -2, -9, -1, -9], // Example: frames 0 to 4 for walking animation
-    walkingdownright: [-1, -9, -10, -9, -1, -8, -15, -8], // Example: frames 0 to 4 for walking animation
-    walkingdown: [0, 8, 15, 8, 0, 14, -15, 14], // Example: frames 0 to 4 for walking animation
-    walkingdownleft: [1, 9, 10, 9, 1, 8, 15, 8], // Example: frames 0 to 4 for walking animation
-    idle: [0], // Example: frames 5 to 7 for idle animation
+    walkingleft: [2, 10, 3, 10, 2, 9, 1, 9], 
+    walkingupleft: [3, 11, 11, 11, 3, 10, 10], 
+    walkingup: [4, 11, 3, 11, 4, -11, -3], 
+    walkingupright: [-3, -11, -11, -11, -3, -10, -10], 
+    walkingright: [-2, -10, -3, -10, -2, -9, -1, -9], 
+    walkingdownright: [-1, -9, -10, -9, -1, -8, -15, -8], 
+    walkingdown: [0, 8, 15, 8, 0, 14, -15, 14], 
+    walkingdownleft: [1, 9, 10, 9, 1, 8, 15, 8], 
+    idle: [0],
 };
 
 const framerate = 4;
