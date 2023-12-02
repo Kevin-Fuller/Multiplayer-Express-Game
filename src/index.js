@@ -239,18 +239,23 @@ io.on("connection", (socket) => {
         // Join a Connect 4 game room
         if (connect4Rooms[roomId]) {
             if (connect4Rooms[roomId].player1 == null) {
-                connect4Rooms = connect4Logic.createConnect4Room(roomId, connect4Rooms, socket)
+                connect4Rooms = connect4Logic.createConnect4Room(roomId, connect4Rooms, io, socket)
             } else if (connect4Rooms[roomId].player2 == null) {
                 connect4Rooms = connect4Logic.joinConnect4Room(roomId, connect4Rooms, io, socket);
             }
         }
-
+        console.log("join connect4 rooms")
+        console.log(connect4Rooms)
 
     });
 
 
     socket.on("quitConnect4", (roomId) => {
-        const connect4GameInfo = connect4Rooms[roomId];
+        if (connect4Rooms[roomId]) {
+        let connect4GameInfo;
+        console.log(roomId)
+        console.log(connect4Rooms);
+        connect4GameInfo = connect4Rooms[roomId];
         let loser = socket.id;
         const player1 = connect4GameInfo.player1;
         const player2 = connect4GameInfo.player2;
@@ -260,7 +265,10 @@ io.on("connection", (socket) => {
         } else if (player2 == loser) {
             winner = player1;
         }
-        connect4Logic.endConnect4(winner, loser, io, connect4Rooms, roomId);
+        connect4Rooms = connect4Logic.endConnect4(winner, loser, io, connect4Rooms, roomId);
+
+        }
+        
     })
 
     socket.on("dropconnect4", (data) => {

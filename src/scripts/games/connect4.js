@@ -17,7 +17,7 @@ function startConnect4Game(roomId, connect4Rooms, io) {
     return connect4Rooms;
 }
 
-function createConnect4Room(roomId, connect4Rooms, player) {
+function createConnect4Room(roomId, connect4Rooms, io, player) {
     connect4Rooms[roomId].player1 = player.id;
     return connect4Rooms;
 }
@@ -31,13 +31,16 @@ function joinConnect4Room(roomId, connect4Rooms, io, player) {
 }
 
 function endConnect4(winner, loser, io, connect4Rooms, roomId) {
-            
+    console.log(roomId)
     if(winner != null) {
     io.to(winner).emit("connect4results", "you won");
     io.to(loser).emit("connect4results", "you lost");
+    }
     connect4Rooms[roomId].player1 = null;
     connect4Rooms[roomId].player2 = null;
-    }
+    console.log(`connect 4 rooms value:`)
+    console.log(connect4Rooms)
+    return(connect4Rooms)
     
 }
 
