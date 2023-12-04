@@ -48,7 +48,7 @@ function isConnectFour(game, row, col) {
     const player = game[row][col];
 
     // Check horizontally
-    let count = 1; // Count the current disc
+    let count = 1; 
     let c = col + 1;
 
     // Check to the right
