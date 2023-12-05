@@ -31,17 +31,13 @@ function joinConnect4Room(roomId, connect4Rooms, io, player) {
 }
 
 function endConnect4(winner, loser, io, connect4Rooms, roomId) {
-    console.log(roomId)
     if(winner != null) {
     io.to(winner).emit("connect4results", "you won");
     io.to(loser).emit("connect4results", "you lost");
     }
     connect4Rooms[roomId].player1 = null;
     connect4Rooms[roomId].player2 = null;
-    console.log(`connect 4 rooms value:`)
-    console.log(connect4Rooms)
     return(connect4Rooms)
-    
 }
 
 function isConnectFour(game, row, col) {
@@ -148,6 +144,23 @@ function findLowestEmptyRow(game, column) {
     return -1; // Column is full
 }
 
+
+function checkIfPlayerExists(connect4Rooms, roomId, io, player, furniture) {
+    console.log(player.id)
+    if(connect4Rooms[roomId].player1 == null) {
+        io.to(player.id).emit("playerNumConnect4", {trueFalse: true, x: furniture.startPosition1.x, y: furniture.startPosition1.y});
+        console.log("player1 entered connect4")
+        return
+    } else if(connect4Rooms[roomId].player2 == null) {
+        io.to(player.id).emit("playerNumConnect4", {trueFalse: true, x: furniture.startPosition2.x, y: furniture.startPosition2.y});
+        console.log("player2 entered connect4")
+        return
+    } else {
+        io.to(player.id).emit("playerNumConnect4", {trueFalse: false, x: 0, y: 0});
+        console.log("room full")
+    }
+}   
+
 module.exports = {
     startConnect4Game,
     createConnect4Room,
@@ -155,4 +168,5 @@ module.exports = {
     isConnectFour,
     endConnect4,
     findLowestEmptyRow,
+    checkIfPlayerExists
 };

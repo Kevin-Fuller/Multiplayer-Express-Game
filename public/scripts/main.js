@@ -489,6 +489,17 @@ socket.on("test", (message)=>{
     changeRoom(message)
 })
 
+function connect4CheckPlayer(room, furniture) {
+    socket.emit("checkIfPlayerExistsConnect4", {roomId: room, furniture: furniture});
+}
+
+
+socket.on("playerNumConnect4", (info)=> {
+    if(info.trueFalse !== false) {
+        moveTo(info.x, info.y)
+    }
+})
+
 
 
 
@@ -592,8 +603,9 @@ canvas.addEventListener('click', (event) => {
                 clickY >= y &&
                 clickY <= y + height
             ) {
+                connect4CheckPlayer(furniture.furnitureOptions.trigger.room, furniture)
                 joinConnect4(furniture.furnitureOptions.trigger.room)
-                moveTo(furniture.x, furniture.y)
+              
                 
                 // Add your logic here for handling the click on Connect4 furniture
                 break; // Exit the loop if a Connect4 furniture is found
@@ -666,6 +678,8 @@ function dropPiece(col) {
 socket.on("turnUpdateConnect4", (board)=>{
     drawConnect4(board)
 })
+
+
 
 socket.on("gameOverConnect4", (message) => {
     console.log(`winner ${message.winner}`);
@@ -764,6 +778,8 @@ const grabBar = document.getElementById("connect4grabber");
 
 let offset = [0,0];
 let isDown = false;
+
+
 
 grabBar.addEventListener("mousedown", (e)=>{
     isDown = true;

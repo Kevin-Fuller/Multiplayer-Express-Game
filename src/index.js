@@ -109,6 +109,8 @@ let rooms = {
                 y: 200, // Adjust the y-coordinate based on your preference
                 frame: 0,
                 furnitureOptions: furnitureOptions["connect4"],
+                startPosition1: {x: 350, y:260},
+                startPosition2: {x:310, y:220}
             }]
     }
 }
@@ -248,6 +250,13 @@ io.on("connection", (socket) => {
         console.log(connect4Rooms)
 
     });
+
+    socket.on("checkIfPlayerExistsConnect4", (connect4Info) =>{
+        if (connect4Rooms[connect4Info.roomId]) {
+            console.log("checking connect4 rooms")
+            connect4Logic.checkIfPlayerExists(connect4Rooms, connect4Info.roomId, io, socket, connect4Info.furniture)
+        }
+    })
 
 
     socket.on("quitConnect4", (roomId) => {
